@@ -27,9 +27,20 @@ class FuncProto {
     size_t c_size(){
       return code_size;
     }
+  static FuncProto *create(CodeUnit *vls,size_t len){
+    FuncProto *ret = new FuncProto();
+    ret->code_size = len;
+    ret->codes = vls;
+    printf("proto code start %x\n",vls);
+    for(int i=0; i<len; i++){
+      printf(" %x ", vls[i]);
+    }
+    printf("\n");
+    return ret;
+  }
 };
 
-typedef union {
+typedef union Val{
   void *obj;
   Vm_int iv;
   Vm_double dv;
@@ -50,14 +61,23 @@ class Frame{
 
   public: 
     Frame(size_t max_stk_size, size_t max_locals_size){
+      printf("call new Frame\n");
       this->max_locals_size = max_locals_size;
       this->max_stk_size = max_stk_size;
     }
 
     void init(){
+      printf("call frame init\n");
       stk_base = (TStk) malloc(sizeof(Value) * max_stk_size);
       stk_top = stk_base + max_stk_size;
+      for(int i=0; i<max_stk_size; i++){
+        stk_base[i].iv = 0;
+      }
+      stkp = stk_base;
       locals = (Value *) malloc(sizeof(Value) * max_locals_size);
+      for(int i=0; i<max_locals_size; i++){
+        locals[i].iv = 0;
+      }
     }
 
     void pushi(Vm_int v){
@@ -81,6 +101,7 @@ class Frame{
 typedef enum {
   ipush = 0x01, // push 2byte as Vm_int
   iadd = 0x02, // add two top int value
+  istore = 0x30, // store int to local variable
 } Instr;
 
 
@@ -95,19 +116,26 @@ class FrameState: public Frame{
   FrameState *parent;
   public:
     typedef CodeUnit* TPc;
-    FrameState(size_t max_ss, size_t max_ls, FuncProto *proto_): Frame(max_ss, max_ls) 
+    FrameState(size_t max_ss, size_t max_ls, FuncProto *proto_): Frame{max_ss, max_ls} 
     {
-      this->proto = proto_;
+      proto = proto_;
+      pc = proto->codes;
+      printf("created Frame start pc is %x\n", pc);
     }
 
     const char *toString(){
-      std::string ret;
+      std::string ret("frame content: ");
+      ret += std::to_string(max_stk_size) + " ";
+      ret += std::to_string(max_locals_size) + " | <stk> ";
       for(TStk i=stk_base; i<stk_top; i++){
-        ret += i->iv + " ";
+        if(i >= stkp)
+          ret += " " + std::to_string((*i).iv) + "  ";
+        else 
+          ret += "[" + std::to_string(i->iv)   + "] ";
       }
-      ret += "\n";
+      ret += "| <locals> ";
       for(int i=0; i<max_locals_size; i++){
-        ret += locals[i].iv + " ";
+        ret += std::to_string(locals[i].iv) + " ";
       }
       ret += "\n";
       return ret.c_str();
@@ -116,20 +144,24 @@ class FrameState: public Frame{
     void setParent(FrameState *frame){
       parent = frame;
     }
-  private:
+  protected:
     TPc pc;
 
   public:
     Vm_int iread(){
-      return sign_extend((*(pc++)) << 8 | *(pc++));
+      return sign_extend((instr_read() << 8) | instr_read());
     }
 
     CodeUnit instr_read(){
       return *(pc++);
     }
 
+    void storei(Vm_int v, size_t local){
+      locals[local].iv = v;
+    }
+
     bool stop(){
-      return pc < (proto->codes + proto->c_size());
+      return pc >= proto->codes + proto->c_size();
     }
 
     static FrameState *create(FuncProto *proto, size_t max_ss, size_t max_ls){
@@ -146,6 +178,8 @@ class VmRuntimeContext {
   public:
     VmRuntimeContext(FrameInstrDisptcher *dispatcher){
       instr_dispatcher = dispatcher;
+      main = nullptr;
+      active_frame = nullptr;
     }
 
     void push_frame(FrameState *frame){
@@ -161,6 +195,7 @@ class VmRuntimeContext {
 
     void run(){
       active_frame->init();
+      printf(active_frame->toString());
       while(!active_frame->stop()){
         instr_dispatcher->dispatch(active_frame->instr_read());
       }
@@ -172,7 +207,7 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
   public:
   virtual VirtualInstrDispatcher *renewFrame(FrameState *frame) override 
   {
-    frame = frame;
+    this->frame = frame;
     return this;
   }
 
@@ -187,24 +222,55 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
     frame->pushi(v1 + v2);
   }
 
+  void _istore(){
+    frame->storei(frame->popi(), frame->instr_read());
+  }
+
   virtual void dispatch(CodeUnit instr) override {
     switch(instr){
       case ipush:
+        printf("dispatch ipush\n");
         _ipush();
         break;
       case iadd:
+        printf("dispatch iadd\n");
         _iadd();
+        break;
+      case istore:
+        printf("dispatch istore\n");
+        _istore();
         break;
     };
     printf("%s\n", frame->toString());
   }
 };
 
+CodeUnit* int2code(int16_t vl_){
+  CodeUnit * ret = (CodeUnit *) malloc(sizeof(CodeUnit) * 2);
+  ret[0] = vl_ >> 8;
+  ret[1] = vl_ & 0x00FF;
+  return ret;
+}
+
 
 void run(){
   VirtualInstrDispatcher *dispatcher = new VirtualInstrDispatcher();
   VmRuntimeContext context(dispatcher);
-  context.push_frame(FrameState::create(nullptr, 3, 1));
+  CodeUnit *av = int2code(10);
+  CodeUnit *bv = int2code(11);
+  CodeUnit *codes = (CodeUnit *) malloc(sizeof(CodeUnit) * 9);
+  codes[0] = ipush;
+  codes[1] = av[0];
+  codes[2] = av[1];
+  codes[3] = ipush;
+  codes[4] = bv[0];
+  codes[5] = bv[1];
+  codes[6] = iadd;
+  codes[7] = istore;
+  codes[8] = 0;
+  // {ipush, av[0], av[1], ipush, bv[0], bv[1], iadd}; 
+  context.push_frame(FrameState::create(FuncProto::create(codes, 9) , 3, 1));
+  context.run();
 }
 
 int main(int argc, char const *argv[])
