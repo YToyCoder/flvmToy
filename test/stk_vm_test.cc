@@ -78,12 +78,15 @@ typedef enum {
 } Instr;
 
 
-class FrameState{
-  Frame *frame;
+class FrameState: Frame{
   FuncProto *proto;
   FrameState *parent;
   public:
     typedef CodeUnit* TPc;
+    FrameState(size_t max_ss, size_t max_ls, FuncProto *proto_): Frame(max_ss, max_ls) 
+    {
+      this->proto = proto_;
+    }
   private:
     TPc pc;
 
