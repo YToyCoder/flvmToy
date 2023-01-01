@@ -12,7 +12,7 @@ typedef uint8_t CodeUnit;
 
 Vm_int sign_extend(uint16_t v){
   if((v >> 15) == 1){
-    v |= 0xFFFFFFFFFFFF0000;
+    return  v | 0xFFFFFFFFFFFF0000;
   }
   return v;
 };
@@ -48,13 +48,47 @@ typedef union Val{
   Vm_bool bv;
 } Value;
 
-typedef Value* TStk;
+enum ObjKind {
+  TInt,
+  TDouble,
+  TObj
+};
+
+class TValue{
+  public:
+  Value _v;
+  uint8_t tag;
+  TValue *setInt(Vm_int v){
+    _v.iv = v;
+    tag = TInt;
+    return this;
+  }
+
+  TValue *setDouble(Vm_double v){
+    _v.dv = v;
+    tag = TDouble;
+    return this;
+  }
+
+  std::string toString(){
+    switch(tag){
+      case TInt:
+        return std::to_string(_v.iv);
+      case TDouble:
+        return std::to_string(_v.dv);
+      default:
+        return "null";
+    }
+  }
+};
+
+typedef TValue* TStk;
 
 class Frame{
   protected:
   TStk stk_base;
   TStk stk_top;
-  Value *locals;
+  TValue *locals;
   TStk stkp; // stack pointer
   size_t max_stk_size;
   size_t max_locals_size;
@@ -68,31 +102,36 @@ class Frame{
 
     void init(){
       printf("call frame init\n");
-      stk_base = (TStk) malloc(sizeof(Value) * max_stk_size);
+      stk_base = (TStk) malloc(sizeof(TValue) * max_stk_size);
       stk_top = stk_base + max_stk_size;
       for(int i=0; i<max_stk_size; i++){
-        stk_base[i].iv = 0;
+        stk_base[i]._v.iv = 0;
       }
       stkp = stk_base;
-      locals = (Value *) malloc(sizeof(Value) * max_locals_size);
+      locals = (TValue *) malloc(sizeof(TValue) * max_locals_size);
       for(int i=0; i<max_locals_size; i++){
-        locals[i].iv = 0;
+        locals[i]._v.iv = 0;
       }
     }
 
     void pushi(Vm_int v){
-      stkp->iv = v;
+      stkp->setInt(v);
       stkp++;
     }
 
     void pushd(Vm_double v){
-      stkp->dv = v;
+      stkp->setDouble(v);
       stkp++;
     }
 
     Vm_int popi(){
       stkp--;
-      return stkp->iv;
+      return stkp->_v.iv;
+    }
+
+    Vm_double popd(){
+      stkp--;
+      return stkp->_v.dv;
     }
 
 };
@@ -132,13 +171,13 @@ class FrameState: public Frame{
       ret += std::to_string(max_locals_size) + " | <stk> ";
       for(TStk i=stk_base; i<stk_top; i++){
         if(i >= stkp)
-          ret += " " + std::to_string((*i).iv) + "  ";
+          ret += " " + i->toString() + "  ";
         else 
-          ret += "[" + std::to_string(i->iv)   + "] ";
+          ret += "[" + i->toString()  + "] ";
       }
       ret += "| <locals> ";
       for(int i=0; i<max_locals_size; i++){
-        ret += std::to_string(locals[i].iv) + " ";
+        ret += locals[i].toString() + " ";
       }
       ret += "\n";
       return ret.c_str();
@@ -155,16 +194,26 @@ class FrameState: public Frame{
       return sign_extend((instr_read() << 8) | instr_read());
     }
 
-    // Vm_double dread(){
-    //   return ;
-    // }
+    Vm_double dread(){
+      Vm_double ret;
+      char *temp=(char *)&ret;
+      for(int i=0; i<8; i++){
+        *temp = instr_read();
+        temp++;
+      }
+      return ret;
+    }
 
     CodeUnit instr_read(){
       return *(pc++);
     }
 
     void storei(Vm_int v, size_t local){
-      locals[local].iv = v;
+      locals[local].setInt(v);
+    }
+
+    void stored(Vm_double v, size_t local){
+      locals[local].setDouble(v);
     }
 
     bool stop(){
@@ -233,6 +282,20 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
     frame->storei(frame->popi(), frame->instr_read());
   }
 
+  void _dpush(){
+    frame->pushd(frame->dread());
+  }
+
+  void _dadd(){
+    Vm_double v1 = frame->popd();
+    Vm_double v2 = frame->popd();
+    frame->pushd(v1 + v2);
+  }
+
+  void _dstore(){
+    frame->stored(frame->popd(), frame->instr_read());
+  }
+
   virtual void dispatch(CodeUnit instr) override {
     switch(instr){
       case ipush:
@@ -246,6 +309,18 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
       case istore:
         printf("dispatch istore\n");
         _istore();
+        break;
+      case dpush:
+        printf("dispatch dpush\n");
+        _dpush();
+        break;
+      case dstore:
+        printf("dispatch dstore\n");
+        _dstore();
+        break;
+      case dadd:
+        printf("dispatch dadd\n");
+        _dadd();
         break;
     };
     printf("%s\n", frame->toString());
@@ -291,18 +366,7 @@ class CodeBuilder{
     }
 
     CodeBuilder *append8bitDouble(double _vl){
-      CodeUnit temp[8];
-      long long iv = static_cast<long long>(_vl);
-      // 8 * 8 = 64
-      temp[0] = (0xFF00000000000000 & iv) >> 56;
-      temp[1] = (0x00FF000000000000 & iv) >> 48;
-      temp[2] = (0x0000FF0000000000 & iv) >> 40;
-      temp[3] = (0x000000FF00000000 & iv) >> 32;
-      temp[4] = (0x00000000FF000000 & iv) >> 24;
-      temp[5] = (0x0000000000FF0000 & iv) >> 16;
-      temp[6] = (0x000000000000FF00 & iv) >> 8;
-      temp[7] = 0x00000000000000FF & iv;
-      return push(temp,8);
+      return push((CodeUnit *)&_vl, 8);
     }
 
     size_t size(){
@@ -347,13 +411,20 @@ void run(){
   // {ipush, av[0], av[1], ipush, bv[0], bv[1], iadd}; 
   CodeBuilder builder(6);
   builder.append(ipush);
-  builder.append2biteInt(10);
+  builder.append2biteInt(-1);
   builder.append(ipush);
   builder.append2biteInt(11);
   builder.append(iadd);
   builder.append(istore);
   builder.append(0);
-  context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 3, 1));
+  builder.append(dpush);
+  builder.append8bitDouble(1.3);
+  builder.append(dpush);
+  builder.append8bitDouble(1.0);
+  builder.append(dadd);
+  builder.append(dstore);
+  builder.append(1);
+  context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 3, 2));
   context.run();
 }
 
