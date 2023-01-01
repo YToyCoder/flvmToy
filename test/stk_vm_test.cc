@@ -52,12 +52,14 @@ enum ObjKind {
   TInt,
   TDouble,
   TObj,
+  TBool,
   UInit
 };
 
 #define valOfval(v, vt) ((v)._v.vt)
 #define IntVal(v) (valOfval(v, iv))
 #define DoubleVal(v) (valOfval(v, dv))
+#define BoolVal(v) (valOfval((v), bv))
 #define defineTValue(v) \
   valOfval(v, iv) = 0; \
   v.tag = UInit
@@ -78,12 +80,20 @@ class TValue{
     return this;
   }
 
+  TValue *setBool(Vm_bool v){
+    BoolVal(*this) = v;
+    tag = TBool;
+    return this;
+  }
+
   std::string toString(){
     switch(tag){
       case TInt:
         return std::to_string(_v.iv);
       case TDouble:
         return std::to_string(_v.dv);
+      case TBool:
+        return _v.bv ? "true" : "false";
       case UInit:
         return "<un>";
       default:
@@ -136,6 +146,11 @@ class Frame{
       stkp++;
     }
 
+    void pushb(Vm_bool v){
+      stkp->setBool(v);
+      stkp++;
+    }
+
     TValue ret(){
       return _ret;
     }
@@ -150,19 +165,31 @@ class Frame{
       return stkp->_v.dv;
     }
 
+    Vm_bool popb(){
+      stkp--;
+      return BoolVal(*stkp);
+    }
+
 };
 
 
 typedef enum {
-  ipush = 0x10, // push 2byte as Vm_int
-  iadd = 0x20, // add two top int value
-  istore = 0x30, // store int to local variable
-  dpush = 0x11, // push 2byte as Vm_double
-  dadd = 0x21, // add two top double value
-  dstore = 0x31, // store double to local variable
   ret = 0x01,
+  ipush = 0x10, // push 2byte as Vm_int
+  iadd = 0x11, // add two top int value
+  istore = 0x12, // store int to local variable
+  dpush = 0x21, // push 2byte as Vm_double
+  dadd = 0x22, // add two top double value
+  dstore = 0x23, // store double to local variable
+  bpusht = 0x30, // true to stk
+  bpushf = 0x31, // false to stk
+  bstore = 0x32, // bool to local
 } Instr;
 
+enum BoolInst{
+  FalseIns = 0, // false
+  TrueIns = 1 // true
+};
 
 class FrameInstrDisptcher {
   public:
@@ -317,6 +344,18 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
     frame->stored(frame->popd(), frame->instr_read());
   }
 
+  void _bpush(uint8_t v){
+    switch(v){
+      case FalseIns:
+      case TrueIns:
+        frame->pushb(v);
+        break;
+      default:
+        //error
+        printf("error instance of bool \n");
+    }
+  }
+
   virtual void dispatch(CodeUnit instr) override {
     switch(instr){
       case ipush:
@@ -346,6 +385,14 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
       case ret:
         printf("dispatch ret\n");
         frame->stop();
+        break;
+      case bpusht:
+        printf("dispatch bpusht\n");
+        _bpush(true);
+        break;
+      case bpushf:
+        printf("dispatch bpushf\n");
+        _bpush(false);
         break;
     };
     printf("%s\n", frame->toString());
@@ -449,8 +496,10 @@ void run(){
   builder.append(dadd);
   builder.append(dstore);
   builder.append(1);
+  builder.append(bpushf);
+  builder.append(bpusht);
   builder.append(ret);
-  context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 3, 2));
+  context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 5, 2));
   context.run();
 }
 
