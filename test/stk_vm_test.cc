@@ -51,8 +51,16 @@ typedef union Val{
 enum ObjKind {
   TInt,
   TDouble,
-  TObj
+  TObj,
+  UInit
 };
+
+#define valOfval(v, vt) ((v)._v.vt)
+#define IntVal(v) (valOfval(v, iv))
+#define DoubleVal(v) (valOfval(v, dv))
+#define defineTValue(v) \
+  valOfval(v, iv) = 0; \
+  v.tag = UInit
 
 class TValue{
   public:
@@ -76,8 +84,10 @@ class TValue{
         return std::to_string(_v.iv);
       case TDouble:
         return std::to_string(_v.dv);
+      case UInit:
+        return "<un>";
       default:
-        return "null";
+        return "<unreached>";
     }
   }
 };
@@ -92,6 +102,7 @@ class Frame{
   TStk stkp; // stack pointer
   size_t max_stk_size;
   size_t max_locals_size;
+  TValue _ret; // a return value
 
   public: 
     Frame(size_t max_stk_size, size_t max_locals_size){
@@ -105,12 +116,13 @@ class Frame{
       stk_base = (TStk) malloc(sizeof(TValue) * max_stk_size);
       stk_top = stk_base + max_stk_size;
       for(int i=0; i<max_stk_size; i++){
-        stk_base[i]._v.iv = 0;
+        // stk_base[i]._v.iv = 0;
+        defineTValue(stk_base[i]);
       }
       stkp = stk_base;
       locals = (TValue *) malloc(sizeof(TValue) * max_locals_size);
       for(int i=0; i<max_locals_size; i++){
-        locals[i]._v.iv = 0;
+        defineTValue(locals[i]);
       }
     }
 
@@ -122,6 +134,10 @@ class Frame{
     void pushd(Vm_double v){
       stkp->setDouble(v);
       stkp++;
+    }
+
+    TValue ret(){
+      return _ret;
     }
 
     Vm_int popi(){
@@ -144,6 +160,7 @@ typedef enum {
   dpush = 0x11, // push 2byte as Vm_double
   dadd = 0x21, // add two top double value
   dstore = 0x31, // store double to local variable
+  ret = 0x01,
 } Instr;
 
 
@@ -156,6 +173,7 @@ class FrameInstrDisptcher {
 class FrameState: public Frame{
   FuncProto *proto;
   FrameState *parent;
+  bool _stop = false;
   public:
     typedef CodeUnit* TPc;
     FrameState(size_t max_ss, size_t max_ls, FuncProto *proto_): Frame{max_ss, max_ls} 
@@ -179,7 +197,6 @@ class FrameState: public Frame{
       for(int i=0; i<max_locals_size; i++){
         ret += locals[i].toString() + " ";
       }
-      ret += "\n";
       return ret.c_str();
     }
 
@@ -216,8 +233,12 @@ class FrameState: public Frame{
       locals[local].setDouble(v);
     }
 
-    bool stop(){
-      return pc >= proto->codes + proto->c_size();
+    void stop(){
+      _stop = true;
+    }
+
+    bool stoped(){
+      return _stop;
     }
 
     static FrameState *create(FuncProto *proto, size_t max_ss, size_t max_ls){
@@ -252,7 +273,7 @@ class VmRuntimeContext {
     void run(){
       active_frame->init();
       printf(active_frame->toString());
-      while(!active_frame->stop()){
+      while(!active_frame->stoped()){
         instr_dispatcher->dispatch(active_frame->instr_read());
       }
     }
@@ -321,6 +342,10 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
       case dadd:
         printf("dispatch dadd\n");
         _dadd();
+        break;
+      case ret:
+        printf("dispatch ret\n");
+        frame->stop();
         break;
     };
     printf("%s\n", frame->toString());
@@ -424,6 +449,7 @@ void run(){
   builder.append(dadd);
   builder.append(dstore);
   builder.append(1);
+  builder.append(ret);
   context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 3, 2));
   context.run();
 }
