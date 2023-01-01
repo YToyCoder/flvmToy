@@ -99,9 +99,12 @@ class Frame{
 
 
 typedef enum {
-  ipush = 0x01, // push 2byte as Vm_int
-  iadd = 0x02, // add two top int value
+  ipush = 0x10, // push 2byte as Vm_int
+  iadd = 0x20, // add two top int value
   istore = 0x30, // store int to local variable
+  dpush = 0x11, // push 2byte as Vm_double
+  dadd = 0x21, // add two top double value
+  dstore = 0x31, // store double to local variable
 } Instr;
 
 
@@ -151,6 +154,10 @@ class FrameState: public Frame{
     Vm_int iread(){
       return sign_extend((instr_read() << 8) | instr_read());
     }
+
+    // Vm_double dread(){
+    //   return ;
+    // }
 
     CodeUnit instr_read(){
       return *(pc++);
@@ -252,6 +259,84 @@ CodeUnit* int2code(int16_t vl_){
   return ret;
 }
 
+class CodeBuilder{
+  CodeUnit *cache;
+  size_t capability;
+  size_t pointer;
+  public:
+    CodeBuilder *push(CodeUnit *carr,size_t len){
+      check_capability(pointer + len);
+      for(size_t i=0; i<len; i++){
+        cache[pointer + i] = carr[i];
+      }
+      pointer += len;
+      return this;
+    }
+
+    CodeUnit *codes(){
+      return cache;
+    }
+
+    CodeBuilder(size_t _size = 16){
+      this->capability = _size;
+      this->cache = (CodeUnit *) malloc(sizeof(CodeUnit) * _size);
+      this->pointer = 0;
+    }
+
+    CodeBuilder *append2biteInt(int16_t _vl){
+      CodeUnit *temp = int2code(_vl);
+      push(temp, 2);
+      free(temp);
+      return this;
+    }
+
+    CodeBuilder *append8bitDouble(double _vl){
+      CodeUnit temp[8];
+      long long iv = static_cast<long long>(_vl);
+      // 8 * 8 = 64
+      temp[0] = (0xFF00000000000000 & iv) >> 56;
+      temp[1] = (0x00FF000000000000 & iv) >> 48;
+      temp[2] = (0x0000FF0000000000 & iv) >> 40;
+      temp[3] = (0x000000FF00000000 & iv) >> 32;
+      temp[4] = (0x00000000FF000000 & iv) >> 24;
+      temp[5] = (0x0000000000FF0000 & iv) >> 16;
+      temp[6] = (0x000000000000FF00 & iv) >> 8;
+      temp[7] = 0x00000000000000FF & iv;
+      return push(temp,8);
+    }
+
+    size_t size(){
+      return pointer;
+    }
+
+    CodeBuilder *append(CodeUnit code){
+      return push(&code, 1);
+    }
+
+    ~CodeBuilder(){
+      free(cache);
+    }
+
+  private:
+
+    void check_capability(size_t expect_len){
+      if(expect_len > capability){
+        capability_extends(capability * 1.5 < expect_len ? expect_len : capability * 1.5);
+      }
+    }
+    void capability_extends(size_t extend_len){
+      if(extend_len > capability){
+        CodeUnit *stotarage = (CodeUnit *) malloc((sizeof (CodeUnit)) * extend_len);
+        for(size_t i=0; i<pointer; i++){
+          stotarage[i] = cache[i];
+        }
+        free(cache);
+        cache = stotarage;
+      }
+    }
+
+};
+
 
 void run(){
   VirtualInstrDispatcher *dispatcher = new VirtualInstrDispatcher();
@@ -259,22 +344,25 @@ void run(){
   CodeUnit *av = int2code(10);
   CodeUnit *bv = int2code(11);
   CodeUnit *codes = (CodeUnit *) malloc(sizeof(CodeUnit) * 9);
-  codes[0] = ipush;
-  codes[1] = av[0];
-  codes[2] = av[1];
-  codes[3] = ipush;
-  codes[4] = bv[0];
-  codes[5] = bv[1];
-  codes[6] = iadd;
-  codes[7] = istore;
-  codes[8] = 0;
   // {ipush, av[0], av[1], ipush, bv[0], bv[1], iadd}; 
-  context.push_frame(FrameState::create(FuncProto::create(codes, 9) , 3, 1));
+  CodeBuilder builder(6);
+  builder.append(ipush);
+  builder.append2biteInt(10);
+  builder.append(ipush);
+  builder.append2biteInt(11);
+  builder.append(iadd);
+  builder.append(istore);
+  builder.append(0);
+  context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 3, 1));
   context.run();
 }
+
+// CodeUnit* double2code()
 
 int main(int argc, char const *argv[])
 {
   run();
+  // printf("float len %d\n", sizeof(float));
+  // printf("sign_extends double\n");
   return 0;
 }

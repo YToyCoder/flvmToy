@@ -38,7 +38,6 @@ if len(sys.argv) > 1:
     if re.match(f".*{mstr}.*", f) != None:
       temp.append(f)
   testFiles = temp
-  print(f"filter len {len(testFiles)}")
 
 
 for el in testFiles:
