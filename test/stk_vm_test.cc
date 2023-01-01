@@ -178,8 +178,10 @@ typedef enum {
   ipush = 0x10, // push 2byte as Vm_int
   iadd = 0x11, // add two top int value
   istore = 0x12, // store int to local variable
+  iload = 0x13, // local to stk top
   dpush = 0x21, // push 2byte as Vm_double
   dadd = 0x22, // add two top double value
+  dload = 0x23, // local to stk top
   dstore = 0x23, // store double to local variable
   bpusht = 0x30, // true to stk
   bpushf = 0x31, // false to stk
@@ -258,6 +260,14 @@ class FrameState: public Frame{
 
     void stored(Vm_double v, size_t local){
       locals[local].setDouble(v);
+    }
+
+    void storeb(Vm_bool v, size_t local){
+      locals[local].setBool(v);
+    }
+
+    TValue localVar(uint8_t local){
+      return locals[local];
     }
 
     void stop(){
@@ -356,6 +366,15 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
     }
   }
 
+  void _bstore(){
+    frame->storeb(frame->popb(), frame->instr_read());
+  }
+
+  void _iload(){
+    Vm_int v = IntVal(frame->localVar(frame->instr_read()));
+    frame->pushi(v);
+  }
+
   virtual void dispatch(CodeUnit instr) override {
     switch(instr){
       case ipush:
@@ -369,6 +388,10 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
       case istore:
         printf("dispatch istore\n");
         _istore();
+        break;
+      case iload:
+        printf("dispatch iload\n");
+        _iload();
         break;
       case dpush:
         printf("dispatch dpush\n");
@@ -393,6 +416,10 @@ class VirtualInstrDispatcher:public FrameInstrDisptcher {
       case bpushf:
         printf("dispatch bpushf\n");
         _bpush(false);
+        break;
+      case bstore:
+        printf("dispatch bstore\n");
+        _bstore();
         break;
     };
     printf("%s\n", frame->toString());
@@ -489,6 +516,8 @@ void run(){
   builder.append(iadd);
   builder.append(istore);
   builder.append(0);
+  builder.append(iload);
+  builder.append(0);
   builder.append(dpush);
   builder.append8bitDouble(1.3);
   builder.append(dpush);
@@ -498,6 +527,8 @@ void run(){
   builder.append(1);
   builder.append(bpushf);
   builder.append(bpusht);
+  builder.append(bstore);
+  builder.append(0);
   builder.append(ret);
   context.push_frame(FrameState::create(FuncProto::create(builder.codes(), builder.size()) , 5, 2));
   context.run();
