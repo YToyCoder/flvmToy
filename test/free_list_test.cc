@@ -12,6 +12,7 @@ class MM {
     ListNodeT **free_list;
     uint8_t *_MM_chunk_start;
     uint8_t *_MM_chunk_end  ;
+    size_t free_list_count[16];
   public:
     enum {_Max_bytes = 128};
     enum {Align = 8};
@@ -20,8 +21,10 @@ class MM {
 
     MM(){
       free_list = (ListNodeT **) malloc(sizeof(ListNodeT *) * 16);
-      for(int i=0; i<16; i++)
+      for(int i=0; i<16; i++){
         free_list[i] = 0;
+        free_list_count[i] = 0;
+      }
       _MM_chunk_start = 0;
       _MM_chunk_end   = 0;
     }
@@ -33,11 +36,19 @@ class MM {
     }
 
     void release(void *p, size_t _n){
-      ListNodeT ** the_free_list = free_list + free_list_index(_n);
+      // printf("release %d\n", _n);
+      size_t index = 0;
+      ListNodeT ** the_free_list = free_list + (index = free_list_index(_n));
       ListNodeT * _p = (ListNodeT *)p;
       _p->_link = *the_free_list;
       *the_free_list = _p;
-      // printf("release one\n");
+      free_list_count[index]++;
+    }
+
+    void print_free(){
+      for(int i=0; i<16;i++)
+        printf("[%d](%d) ", i + 1,free_list_count[i]);
+      printf("\n");
     }
 
     private:
@@ -49,7 +60,8 @@ class MM {
         return fill_free_list(size);
       ListNodeT *ret= *the_free_list;
       *the_free_list = ret->_link;
-      // printf("get from free list \n");
+      free_list_count[ind]--;
+      // printf("get from free list %d\n", ind + 1);
       return ret;
     }
 
@@ -73,6 +85,7 @@ class MM {
         current->_link = *the_free_list;
         *the_free_list = current;
         current = next;
+        free_list_count[free_list_index(len)]++;
       }
       return res;
     }
@@ -122,7 +135,7 @@ class A {
   public:
   A(size_t n){
     // p = (char *)mm.alloc(size);
-    p = (char *)mm.alloc(s = (n % 2 == 0 ? size : size * 3));
+    p = (char *)mm.alloc(s = (n % 2 == 0 ? size : (size * 3)));
     for(int i=0; i<size; i++){
       p[i] = 'A';
     }
@@ -130,10 +143,10 @@ class A {
 
   void increase(){
     mm.release(p, s);
-    p = (char *)mm.alloc(size * 2);
+    p = (char *)mm.alloc(s = size * 2);
   }
   ~A(){
-    mm.release(p, size * 2);
+    mm.release(p, s);
   }
 };
 
