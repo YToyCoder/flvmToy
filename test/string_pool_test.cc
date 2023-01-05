@@ -16,5 +16,6 @@ int main(int argc, char const *argv[])
   auto s1 = ofConstString("hello", &pool);
   auto s2 = ofConstString("hello", &pool);
   printf("%s\n", s1 == s2 ? "true" : "false");
+  printf("%s\n", s2->length() == 5 ? "true" : "false");
   return 0;
 }
