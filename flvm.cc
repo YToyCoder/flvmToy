@@ -17,11 +17,16 @@ class Instruction {
   };
 };
 
+// instruction type : 1 byte
+typedef uint8_t instr_t;
+
+// vm types
 typedef long long FlInt;
 typedef double FlDouble;
 typedef bool FlBool;
 typedef char FlChar;
 
+// vm slot
 union FlValue {
   FlInt _int;
   FlDouble _double;
@@ -31,6 +36,65 @@ union FlValue {
 };
 
 typedef union FlValue FlValue;
+
+// slot with tag which for debug
+class FlTagValue{
+  FlValue _val;
+  uint8_t _tag;
+  FlTagValue(uint8_t tag){
+    _tag = tag;
+  }
+
+  public:
+
+    FlInt _int(){
+      return _val._int;
+    }
+
+    FlDouble _double(){
+      return _val._double;
+    }
+
+    void *objp(){
+      return _val._obj;
+    }
+
+    FlBool _bool(){
+      return _val._bool;
+    }
+
+    FlChar _char(){
+      return _val._char;
+    }
+
+    void of(FlInt v){
+      this->_val._int = v;
+    }
+
+    void of(FlBool v){
+      this->_val._bool = v;
+    }
+
+    void of(FlChar v){
+      this->_val._char = v;
+    }
+
+    void of(FlDouble v){
+      this->_val._double = v;
+    }
+
+    void of(void *v){
+      this->_val._obj = v;
+    }
+
+    enum TagT {
+      IntTag,
+      DoubleTag,
+      ObjTag,
+      BoolTag,
+      CharTag
+    };
+};
 
 class FlString {
   const FlChar *chars;
@@ -87,12 +151,81 @@ class FlStringContsPool {
 
 };
 
+// vm obj
 class FlField {
 };
 
 class FlMethod {
+  instr_t *codes;
+  public:
+    size_t max_stk;
+    size_t max_locals;
 };
 
 class FlKlass {
 };
 
+class FlFrame {
+  FlFrame *last;
+  FlMethod *current_exec;
+  instr_t *pc;
+  FlTagValue *locals;
+  FlTagValue *stk_base;
+  FlTagValue *stk_top;
+  FlTagValue *stkp;
+
+  void stkp_out_of_index_check(){
+    if(stkp < stk_base || stkp >= stk_top){
+      printf("stack out of index>>\n");
+      exit(1);
+    }
+  }
+
+  public:
+    FlFrame(FlFrame *_last, FlMethod *_method){
+      last = _last;
+      current_exec = _method;
+    }
+    
+    void pushobj(void * v){
+      stkp->of(v);
+      stkp++;
+    }
+    void pushc(FlChar v){
+      stkp->of(v);
+      stkp++;
+    }
+    void pushd(FlDouble v){
+      stkp->of(v);
+      stkp++;
+    }
+    void pushb(FlBool v){
+      stkp->of(v);
+      stkp++;
+    }
+    void pushi(FlInt v){
+      stkp->of(v);
+      stkp++;
+    }
+
+    FlInt popi() {
+      stkp--;
+      return stkp->_int();
+    }
+
+    FlBool popb(){
+      stkp--;
+      return stkp->_bool();
+    }
+};
+
+class FlExec {
+  FlFrame *base_frame;
+  FlFrame *current_frame;
+
+  void _iconst_1(){ current_frame->pushi(1); }
+  void _iconst_2(){ current_frame->pushi(2); }
+  void _iconst_3(){ current_frame->pushi(3); }
+  void _iconst_4(){ current_frame->pushi(4); }
+  public:
+};
