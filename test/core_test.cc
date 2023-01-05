@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../flvmToy.h"
+#include "../flvmToy.hpp"
 #include "flvmt.h"
 
 int main(int argc, char const *argv[])
