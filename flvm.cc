@@ -47,6 +47,7 @@ class FlTagValue{
   FlTagValue(uint8_t tag){
     _tag = tag;
   }
+  friend FlFrame;
 
   public:
 
@@ -67,7 +68,8 @@ class FlTagValue{
       DoubleTag,
       ObjTag,
       BoolTag,
-      CharTag
+      CharTag,
+      UnInit,
     };
 
     inline std::string toString(){
@@ -143,6 +145,7 @@ class FlField {
 
 class FlMethod {
   instr_t *codes;
+  friend FlFrame;
   public:
     size_t max_stk;
     size_t max_locals;
@@ -167,10 +170,30 @@ class FlFrame {
     }
   }
 
+  void init(){
+    // pc
+    pc = current_exec->codes;
+    // locals
+    const size_t max_locals = current_exec->max_locals;
+    locals = (FlTagValue *) malloc(sizeof(FlTagValue) * max_locals);
+    for(int i=0; i< max_locals; i++){
+      locals[i]._tag = FlTagValue::UnInit;
+    }
+    // stk
+    const size_t max_stk = current_exec->max_stk;
+    stk_base = (FlTagValue *) malloc(sizeof(FlTagValue) * max_stk);
+    stk_top = stk_base + max_stk;
+    stkp = stk_base;
+    for(FlTagValue *i=stk_base; i<stk_top; i++){
+      i->_tag = FlTagValue::UnInit;
+    }
+  }
+
   public:
     FlFrame(FlFrame *_last, FlMethod *_method){
       last = _last;
       current_exec = _method;
+      init();
     }
 
     void pushobj(void * v){ stkp->set(v); stkp++; }
