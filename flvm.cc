@@ -47,45 +47,17 @@ class FlTagValue{
 
   public:
 
-    FlInt _int(){
-      return _val._int;
-    }
+    FlInt _int()      { return _val._int; }
+    FlDouble _double(){ return _val._double; }
+    void *objp()      { return _val._obj; }
+    FlBool _bool()    { return _val._bool; }
+    FlChar _char()    { return _val._char; }
 
-    FlDouble _double(){
-      return _val._double;
-    }
-
-    void *objp(){
-      return _val._obj;
-    }
-
-    FlBool _bool(){
-      return _val._bool;
-    }
-
-    FlChar _char(){
-      return _val._char;
-    }
-
-    void of(FlInt v){
-      this->_val._int = v;
-    }
-
-    void of(FlBool v){
-      this->_val._bool = v;
-    }
-
-    void of(FlChar v){
-      this->_val._char = v;
-    }
-
-    void of(FlDouble v){
-      this->_val._double = v;
-    }
-
-    void of(void *v){
-      this->_val._obj = v;
-    }
+    void set(FlInt v)   { this->_val._int = v; }
+    void set(FlBool v)  { this->_val._bool = v; }
+    void set(FlChar v)  { this->_val._char = v; }
+    void set(FlDouble v){ this->_val._double = v; }
+    void set(void *v)   { this->_val._obj = v; }
 
     enum TagT {
       IntTag,
@@ -186,27 +158,12 @@ class FlFrame {
       last = _last;
       current_exec = _method;
     }
-    
-    void pushobj(void * v){
-      stkp->of(v);
-      stkp++;
-    }
-    void pushc(FlChar v){
-      stkp->of(v);
-      stkp++;
-    }
-    void pushd(FlDouble v){
-      stkp->of(v);
-      stkp++;
-    }
-    void pushb(FlBool v){
-      stkp->of(v);
-      stkp++;
-    }
-    void pushi(FlInt v){
-      stkp->of(v);
-      stkp++;
-    }
+
+    void pushobj(void * v){ stkp->set(v); stkp++; }
+    void pushc(FlChar v)  { stkp->set(v); stkp++; }
+    void pushd(FlDouble v){ stkp->set(v); stkp++; }
+    void pushb(FlBool v)  { stkp->set(v); stkp++; }
+    void pushi(FlInt v)   { stkp->set(v); stkp++; }
 
     FlInt popi() {
       stkp--;
