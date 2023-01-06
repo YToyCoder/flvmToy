@@ -1,6 +1,9 @@
 #include <iostream>
 #include <unordered_map>
+#include <string>
 #include "MurmurHash2.cc"
+
+#define FlvmDebug
 
 const time_t hash_seed = time(nullptr);
 
@@ -66,6 +69,17 @@ class FlTagValue{
       BoolTag,
       CharTag
     };
+
+    inline std::string toString(){
+      switch(_tag){
+        case IntTag:    return std::to_string(_int());
+        case DoubleTag: return std::to_string(_double());
+        case ObjTag:    return "obj";
+        case BoolTag:   return std::to_string(_bool());
+        case CharTag:   return std::to_string(_char());
+        default:        return "nil";
+      };
+    }
 };
 
 class FlString {
@@ -174,6 +188,20 @@ class FlFrame {
       stkp--;
       return stkp->_bool();
     }
+
+    void print_frame(){
+      std::string ret("frame data:\n stk: ");
+      for(FlTagValue *i=stk_base; i<stk_top; i++){
+        std::string el = i < stkp ? "[" + i->toString() + "]" : i->toString();
+        ret += el + " ";
+      }
+      ret += "\n locals: ";
+      for(int i=0; i<current_exec->max_locals; i++){
+        ret += locals[i].toString() + " ";
+      }
+      ret += "\n";
+      printf(ret.c_str());
+    }
 };
 
 class FlExec {
@@ -192,5 +220,8 @@ class FlExec {
         case Instruction::iconst_3: return _iconst_3();
         case Instruction::iconst_4: return _iconst_4();
       };
+#ifdef FlvmDebug
+      current_frame->print_frame();
+#endif
     }
 };
