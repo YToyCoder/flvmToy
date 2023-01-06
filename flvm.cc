@@ -8,7 +8,7 @@ uint64_t hash_cstr(const char *p, size_t len){
   return MurmurHash64A(p, len, hash_seed);
 }
 
-class Instruction {
+struct Instruction {
   enum Code {
     iconst_1 = 0x01,
     iconst_2 = 0x02,
@@ -185,4 +185,12 @@ class FlExec {
   void _iconst_3(){ current_frame->pushi(3); }
   void _iconst_4(){ current_frame->pushi(4); }
   public:
+    void dispatch(instr_t instr){
+      switch(instr){
+        case Instruction::iconst_1: return _iconst_1();
+        case Instruction::iconst_2: return _iconst_2();
+        case Instruction::iconst_3: return _iconst_3();
+        case Instruction::iconst_4: return _iconst_4();
+      };
+    }
 };
