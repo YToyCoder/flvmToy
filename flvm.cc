@@ -143,12 +143,69 @@ class FlStringContsPool {
 class FlField {
 };
 
+// pre declaration
+class FlMethodBuilder;
+
 class FlMethod {
   instr_t *codes;
+  size_t _max_stk;
+  size_t _max_locals;
   friend FlFrame;
+  friend FlMethodBuilder;
   public:
-    size_t max_stk;
-    size_t max_locals;
+    size_t max_stk()    { return _max_stk; }
+    size_t max_locals() { return _max_locals; }
+};
+
+class FlMethodBuilder {
+  instr_t *code_cache;
+  size_t capability;
+  size_t len;
+  size_t max_stk;
+  size_t max_locals;
+  void capability_check(){
+    if(len == capability){
+      size_t extend = 1.5 * capability < INT32_MAX ? 1.5 * capability : INT32_MAX;
+      instr_t* new_area = (instr_t *) malloc(sizeof(instr_t) * extend);
+      for(int i=0; i<len; i++){
+        new_area[i] = code_cache[i];
+      }
+      free(code_cache);
+      code_cache = new_area;
+    }
+  }
+public:
+  void clear(){
+    len = 0;
+    max_stk = -1;
+    max_locals = -1;
+  }
+
+  FlMethodBuilder *append(instr_t instr){
+    capability_check();
+    code_cache[len++] = instr;
+    return this;
+  }
+
+  FlMethodBuilder *set_max_stk(size_t stk_deep){
+    max_stk = stk_deep;
+    return this;
+  }
+
+  FlMethodBuilder *set_max_locals(size_t locals_size){
+    max_locals = locals_size;
+    return this;
+  }
+
+  FlMethod *build(){
+    FlMethod *ret = new FlMethod();
+    ret->codes = code_cache;
+    ret->_max_locals = max_locals;
+    ret->_max_stk = max_stk;
+    clear();
+    return ret;
+  }
+
 };
 
 class FlKlass {
@@ -174,13 +231,13 @@ class FlFrame {
     // pc
     pc = current_exec->codes;
     // locals
-    const size_t max_locals = current_exec->max_locals;
+    const size_t max_locals = current_exec->max_locals();
     locals = (FlTagValue *) malloc(sizeof(FlTagValue) * max_locals);
     for(int i=0; i< max_locals; i++){
       locals[i]._tag = FlTagValue::UnInit;
     }
     // stk
-    const size_t max_stk = current_exec->max_stk;
+    const size_t max_stk = current_exec->max_stk();
     stk_base = (FlTagValue *) malloc(sizeof(FlTagValue) * max_stk);
     stk_top = stk_base + max_stk;
     stkp = stk_base;
@@ -219,7 +276,7 @@ class FlFrame {
         ret += el + " ";
       }
       ret += "\n locals: ";
-      for(int i=0; i<current_exec->max_locals; i++){
+      for(int i=0; i<current_exec->max_locals(); i++){
         ret += locals[i].toString() + " ";
       }
       ret += "\n";
