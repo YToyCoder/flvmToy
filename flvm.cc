@@ -19,6 +19,10 @@ struct Instruction {
     dconst_2 = 0x06,
     ipush    = 0x07,
     iload    = 0x08,
+    dload    = 0x09,
+    aload    = 0x0A,
+    ldci     = 0x11,
+    ldcd     = 0x12,
   };
 };
 
@@ -292,6 +296,7 @@ class FlFrame {
     void pushb(FlBool v)  { stkp->set(v); stkp++; }
     void pushi(FlInt v)   { stkp->set(v); stkp++; }
     void loadi(FlInt v, size_t location) { locals[location].set(v); }
+    void loadd(FlDouble v, size_t location) { locals[location].set(v); }
 
     FlInt popi() {
       stkp--;
@@ -302,6 +307,7 @@ class FlFrame {
       stkp--;
       return stkp->_bool();
     }
+    FlDouble popd() { return (--stkp)->_double(); }
 
     void setLast(FlFrame *frame){
       this->last = frame;
@@ -379,6 +385,9 @@ class FlExec {
           break;
         case Instruction::ipush:    _ipush()   ; break;
         case Instruction::iload:    _iload()   ; break;
+        case Instruction::dload:
+          current_frame->loadd(current_frame->popd(), read_instr());
+          break;
       };
 #ifdef FlvmDebug
       current_frame->print_frame();

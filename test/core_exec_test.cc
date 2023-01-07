@@ -23,6 +23,8 @@ int main(int argc, char const *argv[])
   mbuilder.append(Instruction::iconst_4);
   mbuilder.append(Instruction::dconst_1);
   mbuilder.append(Instruction::dconst_2);
+  mbuilder.append(Instruction::dload);
+  mbuilder.append(1);
   mbuilder.append(Instruction::ipush);
   push(10, &mbuilder);
   mbuilder.append(Instruction::iload);
