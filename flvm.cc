@@ -15,6 +15,7 @@ struct Instruction {
     iconst_2 = 0x02,
     iconst_3 = 0x03,
     iconst_4 = 0x04,
+    ipush    = 0x05,
   };
 };
 
@@ -307,14 +308,26 @@ class FlFrame {
     }
 };
 
+FlInt sign_extend(uint16_t v){
+  if((v >> 15) == 1){
+    return  v | 0xFFFFFFFFFFFF0000;
+  }
+  return v;
+};
+
 class FlExec {
   FlFrame *base_frame;
   FlFrame *current_frame;
+  instr_t read_instr(){ return *(current_frame->pc++);}
 
   void _iconst_1(){ current_frame->pushi(1); }
   void _iconst_2(){ current_frame->pushi(2); }
   void _iconst_3(){ current_frame->pushi(3); }
   void _iconst_4(){ current_frame->pushi(4); }
+  void _ipush()   { 
+    FlInt v = sign_extend(read_instr() << 8 | read_instr());
+    current_frame->pushi(v);
+  }
   public:
     FlExec *setBase(FlFrame *frame){
       base_frame = frame;
@@ -334,6 +347,7 @@ class FlExec {
         case Instruction::iconst_2: _iconst_2(); break;
         case Instruction::iconst_3: _iconst_3(); break;
         case Instruction::iconst_4: _iconst_4(); break;
+        case Instruction::ipush:    _ipush()   ; break;
       };
 #ifdef FlvmDebug
       current_frame->print_frame();
