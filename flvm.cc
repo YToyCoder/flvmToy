@@ -3,8 +3,6 @@
 #include <string>
 #include "MurmurHash2.cc"
 
-#define FlvmDebug
-
 const time_t hash_seed = time(nullptr);
 
 uint64_t hash_cstr(const char *p, size_t len){
@@ -40,6 +38,8 @@ union FlValue {
 
 typedef union FlValue FlValue;
 
+class FlFrame;
+
 // slot with tag which for debug
 class FlTagValue{
   FlValue _val;
@@ -57,11 +57,11 @@ class FlTagValue{
     FlBool _bool()    { return _val._bool; }
     FlChar _char()    { return _val._char; }
 
-    void set(FlInt v)   { this->_val._int = v; }
-    void set(FlBool v)  { this->_val._bool = v; }
-    void set(FlChar v)  { this->_val._char = v; }
-    void set(FlDouble v){ this->_val._double = v; }
-    void set(void *v)   { this->_val._obj = v; }
+    void set(FlInt v)   { this->_val._int = v; _tag = IntTag; }
+    void set(FlBool v)  { this->_val._bool = v; _tag = BoolTag; }
+    void set(FlChar v)  { this->_val._char = v; _tag = CharTag; }
+    void set(FlDouble v){ this->_val._double = v; _tag = DoubleTag; }
+    void set(void *v)   { this->_val._obj = v; _tag = ObjTag; }
 
     enum TagT {
       IntTag,
@@ -150,6 +150,7 @@ class FlMethod {
   instr_t *codes;
   size_t _max_stk;
   size_t _max_locals;
+  size_t _code_len;
   friend FlFrame;
   friend FlMethodBuilder;
   public:
@@ -175,6 +176,15 @@ class FlMethodBuilder {
     }
   }
 public:
+  FlMethodBuilder(){
+    code_cache = nullptr;
+    capability = 16;
+    len = 0;
+    max_stk = -1;
+    max_locals = -1;
+    code_cache = (instr_t *) malloc(sizeof(instr_t) * capability);
+  }
+
   void clear(){
     len = 0;
     max_stk = -1;
@@ -202,6 +212,7 @@ public:
     ret->codes = code_cache;
     ret->_max_locals = max_locals;
     ret->_max_stk = max_stk;
+    ret->_code_len = this->len;
     clear();
     return ret;
   }
@@ -211,6 +222,8 @@ public:
 class FlKlass {
 };
 
+class FlExec;
+
 class FlFrame {
   FlFrame *last;
   FlMethod *current_exec;
@@ -219,6 +232,7 @@ class FlFrame {
   FlTagValue *stk_base;
   FlTagValue *stk_top;
   FlTagValue *stkp;
+  friend FlExec;
 
   void stkp_out_of_index_check(){
     if(stkp < stk_base || stkp >= stk_top){
@@ -246,6 +260,10 @@ class FlFrame {
     }
   }
 
+  bool end_of_pc(){
+    return (current_exec->codes + current_exec->_code_len) <= pc;
+  }
+
   public:
     FlFrame(FlFrame *_last, FlMethod *_method){
       last = _last;
@@ -269,6 +287,10 @@ class FlFrame {
       return stkp->_bool();
     }
 
+    void setLast(FlFrame *frame){
+      this->last = frame;
+    }
+
     void print_frame(){
       std::string ret("frame data:\n stk: ");
       for(FlTagValue *i=stk_base; i<stk_top; i++){
@@ -281,6 +303,7 @@ class FlFrame {
       }
       ret += "\n";
       printf(ret.c_str());
+      printf("print frame\n");
     }
 };
 
@@ -293,15 +316,37 @@ class FlExec {
   void _iconst_3(){ current_frame->pushi(3); }
   void _iconst_4(){ current_frame->pushi(4); }
   public:
+    FlExec *setBase(FlFrame *frame){
+      base_frame = frame;
+      current_frame = base_frame;
+      return this;
+    }
+
+    FlExec *setCurrent(FlFrame *frame){
+      frame->setLast(current_frame);
+      current_frame = frame;
+      return this;
+    }
+
     void dispatch(instr_t instr){
       switch(instr){
-        case Instruction::iconst_1: return _iconst_1();
-        case Instruction::iconst_2: return _iconst_2();
-        case Instruction::iconst_3: return _iconst_3();
-        case Instruction::iconst_4: return _iconst_4();
+        case Instruction::iconst_1: _iconst_1(); break;
+        case Instruction::iconst_2: _iconst_2(); break;
+        case Instruction::iconst_3: _iconst_3(); break;
+        case Instruction::iconst_4: _iconst_4(); break;
       };
 #ifdef FlvmDebug
       current_frame->print_frame();
 #endif
+    }
+
+    void run(){
+      while(true){
+        if(current_frame->end_of_pc()){
+          printf("end of pc\n");
+          return;
+        }
+        dispatch(*(current_frame->pc++));
+      }
     }
 };
