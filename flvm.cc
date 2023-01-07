@@ -228,6 +228,17 @@ class FlKlass {
 
 class FlExec;
 
+inline std::string repeat(std::string str, size_t n){
+  std::string ret;
+  for(int i=0; i<n; i++)
+    ret += str;
+  return ret;
+}
+
+inline std::string append_eq_util(std::string str, size_t n){
+  return str + repeat(" ", n - str.size() - 1) + "=";
+}
+
 class FlFrame {
   FlFrame *last;
   FlMethod *current_exec;
@@ -297,18 +308,25 @@ class FlFrame {
     }
 
     void print_frame(){
-      std::string ret("frame data:\n stk: ");
+      // printf("=====\n");
+      std::string head("==>>frame data<<");
+      std::string stks("= stk: ");
       for(FlTagValue *i=stk_base; i<stk_top; i++){
         std::string el = i < stkp ? "[" + i->toString() + "]" : i->toString();
-        ret += el + " ";
+        stks += el + " ";
       }
-      ret += "\n locals: ";
+      std::string slocals = "= locals: ";
       for(int i=0; i<current_exec->max_locals(); i++){
-        ret += locals[i].toString() + " ";
+        slocals += locals[i].toString() + " ";
       }
-      ret += "\n";
-      printf(ret.c_str());
-      printf("print frame\n");
+      size_t max_line_len = std::max(std::max(stks.size(), slocals.size()), head.size()) + 1;
+      head += repeat("=", max_line_len - head.size());
+      stks = append_eq_util(stks, max_line_len);
+      slocals = append_eq_util(slocals, max_line_len);
+      printf("%s\n",head.c_str());
+      printf("%s\n",stks.c_str());
+      printf("%s\n",slocals.c_str());
+      printf("%s\n",repeat("=",max_line_len).c_str());
     }
 };
 
