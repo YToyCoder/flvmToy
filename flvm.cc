@@ -15,7 +15,10 @@ struct Instruction {
     iconst_2 = 0x02,
     iconst_3 = 0x03,
     iconst_4 = 0x04,
-    ipush    = 0x05,
+    dconst_1 = 0x05,
+    dconst_2 = 0x06,
+    ipush    = 0x07,
+    iload    = 0x08,
   };
 };
 
@@ -277,6 +280,7 @@ class FlFrame {
     void pushd(FlDouble v){ stkp->set(v); stkp++; }
     void pushb(FlBool v)  { stkp->set(v); stkp++; }
     void pushi(FlInt v)   { stkp->set(v); stkp++; }
+    void loadi(FlInt v, size_t location) { locals[location].set(v); }
 
     FlInt popi() {
       stkp--;
@@ -328,6 +332,8 @@ class FlExec {
     FlInt v = sign_extend(read_instr() << 8 | read_instr());
     current_frame->pushi(v);
   }
+
+  void _iload() { current_frame->loadi(current_frame->popi(), read_instr());}
   public:
     FlExec *setBase(FlFrame *frame){
       base_frame = frame;
@@ -347,7 +353,14 @@ class FlExec {
         case Instruction::iconst_2: _iconst_2(); break;
         case Instruction::iconst_3: _iconst_3(); break;
         case Instruction::iconst_4: _iconst_4(); break;
+        case Instruction::dconst_1:
+          current_frame->pushd(1.0);
+          break;
+        case Instruction::dconst_2:
+          current_frame->pushd(2.0);
+          break;
         case Instruction::ipush:    _ipush()   ; break;
+        case Instruction::iload:    _iload()   ; break;
       };
 #ifdef FlvmDebug
       current_frame->print_frame();
