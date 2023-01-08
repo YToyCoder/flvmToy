@@ -35,5 +35,7 @@ int main(int argc, char const *argv[])
   FlExec exec;
   exec.setBase(&frame);
   exec.run();
+  // FlVM::init();
+  FlVM::ofString("123",3);
   return 0;
 }

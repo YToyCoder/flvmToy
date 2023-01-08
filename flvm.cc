@@ -2,12 +2,65 @@
 #include <unordered_map>
 #include <string>
 #include "MurmurHash2.cc"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+#if defined(WIN32) || defined(_WIN32)
+#include <windows.h>
+struct TermColor {
+  enum {
+  Black = 0,
+  Green = 2,
+  Red   = 4,
+  };
+};
+#endif
+
+// color print
+void COLOR_PRINT(const char* s, int color)
+{
+#if defined(WIN32) || defined(_WIN32)
+  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+  SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | color);
+  printf(s);
+  SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | 7);
+#endif
+}
+
 
 const time_t hash_seed = time(nullptr);
 
 uint64_t hash_cstr(const char *p, size_t len){
   return MurmurHash64A(p, len, hash_seed);
 }
+
+class FlStringConstPool;
+class FlString;
+class FlVM {
+  static FlStringConstPool *const_string_pool;
+  public:
+  inline static FlString *ofString(const char *chars, size_t len);
+  inline static void init();
+  static void error(const char *chars){
+    COLOR_PRINT(chars, TermColor::Red);
+  }
+  enum State {
+    Uninit,
+    Init,
+  };
+  private:
+  static State _state;
+  static void state_check(){
+    if(_state == Uninit){
+      error("FlVM not init yet\n");
+      exit(1);
+    }
+  }
+};
+// vm static define
+FlStringConstPool *FlVM::const_string_pool = nullptr;
+FlVM::State FlVM::_state = State::Uninit;
 
 struct Instruction {
   enum Code {
@@ -28,20 +81,28 @@ struct Instruction {
 
 // instruction type : 1 byte
 typedef uint8_t instr_t;
-
 // vm types
+class FlString;
+
+class FlObj {
+  virtual uint64_t hash() = 0;
+};
+
 typedef long long FlInt;
-typedef double FlDouble;
-typedef bool FlBool;
-typedef char FlChar;
+typedef double    FlDouble;
+typedef bool      FlBool;
+typedef char      FlChar;
+typedef uint8_t   FlByte;
+typedef FlObj*    FlObjp;
 
 // vm slot
 union FlValue {
   FlInt _int;
   FlDouble _double;
-  void *_obj;
+  FlObjp _obj;
   FlBool _bool;
   FlChar _char;
+  FlByte _byte;
 };
 
 typedef union FlValue FlValue;
@@ -69,7 +130,7 @@ class FlTagValue{
     void set(FlBool v)  { this->_val._bool = v; _tag = BoolTag; }
     void set(FlChar v)  { this->_val._char = v; _tag = CharTag; }
     void set(FlDouble v){ this->_val._double = v; _tag = DoubleTag; }
-    void set(void *v)   { this->_val._obj = v; _tag = ObjTag; }
+    void set(FlObjp v)   { this->_val._obj = v; _tag = ObjTag; }
 
     enum TagT {
       IntTag,
@@ -91,14 +152,15 @@ class FlTagValue{
       };
     }
 };
-
-class FlString {
+class FlString : FlObj{
   const FlChar *chars;
   FlInt len;
+  FlInt hash_code;
   public:
     FlString(FlChar *chars,size_t _len){
       this->chars = chars;
       len = _len;
+      hash_code = 0;
     }
 
     FlInt length() {
@@ -110,8 +172,10 @@ class FlString {
       return chars[loc];
     }
 
-    uint64_t hash(){
-      return hash_cstr(chars, len);
+    inline uint64_t hash() override {
+      if(hash_code == 0)
+        hash_code = hash_cstr(chars, len);
+      return hash_code;
     }
 
     void range_check(FlInt loc){
@@ -120,7 +184,7 @@ class FlString {
     }
 };
 
-class FlStringContsPool {
+class FlStringConstPool {
   std::unordered_map<uint64_t,FlString *> pool;
   public:
   FlString *ofFlstring(const char *chars, size_t len){
@@ -227,7 +291,22 @@ public:
 
 };
 
+class FlKlassDescriptor{
+  FlString *_id;
+  public:
+    inline FlString *id(){
+      return _id;
+    }
+};
+
 class FlKlass {
+  FlKlass *_super;
+  FlKlass **_apis;
+  FlMethod **_methods;
+  FlString *_name;
+};
+
+class FlFileLoader {
 };
 
 class FlExec;
@@ -255,7 +334,7 @@ class FlFrame {
 
   void stkp_out_of_index_check(){
     if(stkp < stk_base || stkp >= stk_top){
-      printf("stack out of index>>\n");
+      FlVM::error("stack out of index>>\n");
       exit(1);
     }
   }
@@ -290,7 +369,7 @@ class FlFrame {
       init();
     }
 
-    void pushobj(void * v){ stkp->set(v); stkp++; }
+    void pushobj(FlObjp v){ stkp->set(v); stkp++; }
     void pushc(FlChar v)  { stkp->set(v); stkp++; }
     void pushd(FlDouble v){ stkp->set(v); stkp++; }
     void pushb(FlBool v)  { stkp->set(v); stkp++; }
@@ -404,3 +483,15 @@ class FlExec {
       }
     }
 };
+// vm static
+inline FlString *FlVM::ofString(const char *chars, size_t len){
+  FlVM::state_check();
+  return FlVM::const_string_pool->ofFlstring(chars, len);
+}
+inline void FlVM::init(){
+#ifdef FlvmDebug
+  printf("init\n");
+#endif
+  FlVM::_state = FlVM::State::Init;
+  FlVM::const_string_pool = new FlStringConstPool();
+}

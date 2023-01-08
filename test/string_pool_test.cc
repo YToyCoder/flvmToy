@@ -1,6 +1,6 @@
 #include "../flvm.cc"
 
-FlString* ofConstString(const char *p, FlStringContsPool *pool){
+FlString* ofConstString(const char *p, FlStringConstPool *pool){
   int size = 0;
   char *walk = const_cast<char *>(p);
   while(*walk != '\0'){
@@ -12,7 +12,7 @@ FlString* ofConstString(const char *p, FlStringContsPool *pool){
 
 int main(int argc, char const *argv[])
 {
-  FlStringContsPool pool;
+  FlStringConstPool pool;
   auto s1 = ofConstString("hello", &pool);
   auto s2 = ofConstString("hello", &pool);
   printf("%s\n", s1 == s2 ? "true" : "false");
