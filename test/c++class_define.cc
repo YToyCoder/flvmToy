@@ -1,5 +1,7 @@
 #include <iostream>
 #include <stdio.h>
+#include <iostream>
+#include <sstream>
 
 class Declare;
 typedef Declare *ThePointer;
@@ -23,5 +25,8 @@ int main(int argc, char const *argv[])
   printf("size of 2 %d\n", sizeof(MUseNode));
   printf("size of 3 %d\n", sizeof data->user_data);
   printf("size of 4 %d\n", sizeof data->_link);
+  std::ostringstream ss;
+  ss << std::hex << 0xA8;
+  printf("%s\n",ss.str().c_str());
   return 0;
 }
