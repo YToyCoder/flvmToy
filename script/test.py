@@ -2,7 +2,6 @@
 import os
 import sys
 import re
-import itertools
 
 dir,file = os.path.split(os.path.abspath(__file__))
 root = os.path.dirname(dir)
@@ -30,14 +29,24 @@ def build_file(file):
   log(f"execute cmd : {cmd}")
   os.system(cmd)
 
+def mksurePath():
+  if not os.path.exists(build):
+    os.makedirs(build)
+
+mksurePath()
+
 if len(sys.argv) > 1:
   # testFiles = 
   mstr = sys.argv[1]
-  temp = []
-  for f in testFiles:
-    if re.match(f".*{mstr}.*", f) != None:
-      temp.append(f)
-  testFiles = temp
+  if mstr == "clean":
+    os.system(f"rm -r {root}/build")
+    exit(0)
+  else :
+    temp = []
+    for f in testFiles:
+      if re.match(f".*{mstr}.*", f) != None:
+        temp.append(f)
+    testFiles = temp
 
 
 for el in testFiles:
