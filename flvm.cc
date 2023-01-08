@@ -34,34 +34,6 @@ const time_t hash_seed = time(nullptr);
 uint64_t hash_cstr(const char *p, size_t len){
   return MurmurHash64A(p, len, hash_seed);
 }
-
-class FlStringConstPool;
-class FlString;
-class FlVM {
-  static FlStringConstPool *const_string_pool;
-  public:
-  inline static FlString *ofString(const char *chars, size_t len);
-  inline static void init();
-  static void error(const char *chars){
-    COLOR_PRINT(chars, TermColor::Red);
-  }
-  enum State {
-    Uninit,
-    Init,
-  };
-  private:
-  static State _state;
-  static void state_check(){
-    if(_state == Uninit){
-      error("FlVM not init yet\n");
-      exit(1);
-    }
-  }
-};
-// vm static define
-FlStringConstPool *FlVM::const_string_pool = nullptr;
-FlVM::State FlVM::_state = State::Uninit;
-
 struct Instruction {
   enum Code {
     iconst_1 = 0x01,
@@ -82,7 +54,6 @@ struct Instruction {
 // instruction type : 1 byte
 typedef uint8_t instr_t;
 // vm types
-class FlString;
 
 class FlObj {
   virtual uint64_t hash() = 0;
@@ -108,7 +79,6 @@ union FlValue {
 typedef union FlValue FlValue;
 
 class FlFrame;
-
 // slot with tag which for debug
 class FlTagValue{
   FlValue _val;
@@ -184,36 +154,46 @@ class FlString : FlObj{
     }
 };
 
-class FlStringConstPool {
-  std::unordered_map<uint64_t,FlString *> pool;
+// all global
+class FlConstPool {
+  std::unordered_map<uint64_t, FlTagValue *> _hash_map;
   public:
-  FlString *ofFlstring(const char *chars, size_t len){
-    const uint64_t hash_code = hash_cstr(chars, len);
-    FlString *obj = get(hash_code);
-    if(obj == nullptr){
-      obj = new FlString(const_cast<FlChar*>(chars), len);
-      put(hash_code, obj);
+    FlTagValue * lookup(FlString *key) {
+      auto iter = _hash_map.find(key->hash());
+      return (iter == _hash_map.end() ? nullptr : iter->second);
     }
-    return obj;
-  }
 
-  void put(uint64_t key, FlString * val){
-    // pool
-    pool.emplace(key, val);
-  }
-
-  FlString *get(uint64_t key){
-    auto iter = pool.find(key);
-    if(iter == pool.end())
-      return nullptr;
-    return iter->second;
-  }
-
+    void *put(FlString *key, FlTagValue *value){ _hash_map[key->hash()] = value; }
 };
+
+class FlStringConstPool;
+class FlVM {
+  static FlStringConstPool *const_string_pool;
+  static FlConstPool *const_pool;
+  public:
+  inline static FlString *ofString(const char *chars, size_t len);
+  inline static void init();
+  static void error(const char *chars){
+    COLOR_PRINT(chars, TermColor::Red);
+  }
+  enum State {
+    Uninit,
+    Init,
+  };
+  private:
+  static State _state;
+  static void state_check(){
+    if(_state == Uninit){
+      error("FlVM not init yet\n");
+      exit(1);
+    }
+  }
+};
+// vm static define
+FlStringConstPool *FlVM::const_string_pool = nullptr;
+FlVM::State FlVM::_state = State::Uninit;
 
 // vm obj
-class FlField {
-};
 
 // pre declaration
 class FlMethodBuilder;
@@ -291,19 +271,30 @@ public:
 
 };
 
-class FlKlassDescriptor{
-  FlString *_id;
+class FlStringConstPool {
+  std::unordered_map<uint64_t,FlString *> pool;
   public:
-    inline FlString *id(){
-      return _id;
+  FlString *ofFlstring(const char *chars, size_t len){
+    const uint64_t hash_code = hash_cstr(chars, len);
+    FlString *obj = get(hash_code);
+    if(obj == nullptr){
+      obj = new FlString(const_cast<FlChar*>(chars), len);
+      put(hash_code, obj);
     }
-};
+    return obj;
+  }
 
-class FlKlass {
-  FlKlass *_super;
-  FlKlass **_apis;
-  FlMethod **_methods;
-  FlString *_name;
+  void put(uint64_t key, FlString * val){
+    pool.emplace(key, val);
+  }
+
+  FlString *get(uint64_t key){
+    auto iter = pool.find(key);
+    if(iter == pool.end())
+      return nullptr;
+    return iter->second;
+  }
+
 };
 
 class FlFileLoader {
