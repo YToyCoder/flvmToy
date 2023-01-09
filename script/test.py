@@ -2,11 +2,11 @@
 import os
 import sys
 import re
-
-dir,file = os.path.split(os.path.abspath(__file__))
-root = os.path.dirname(dir)
-testFolder = os.path.join(root, "test")
-build = os.path.join(root, "build/test")
+import share
+# dir,file = os.path.split(os.path.abspath(__file__))
+root = share.root #os.path.dirname(dir)
+testFolder = share.testFolder #os.path.join(root, "test")
+test_build = os.path.join(share.build, "test")
 
 def log(msg):
   print(f"[flvm-test]: {msg}")
@@ -15,23 +15,25 @@ cc = "g++"
 
 log(f"root path {root}")
 log(f"test path {testFolder}")
-log(f"build path {build}")
+log(f"build path {test_build}")
 
 testFiles = os.listdir(testFolder)
 
 builtExe = []
 def build_file(file):
-  log(f"build file {file}")
   source = os.path.join(testFolder, file)
-  target = os.path.join(build, file).replace(".cc",".exe")
+  log(f"build file {source}")
+  if not os.path.isfile(source):
+    return
+  target = os.path.join(test_build, file).replace(".cc",".exe")
   builtExe.append(target)
   cmd = f"{cc} {source} -o {target}"
   log(f"execute cmd : {cmd}")
   os.system(cmd)
 
 def mksurePath():
-  if not os.path.exists(build):
-    os.makedirs(build)
+  if not os.path.exists(test_build):
+    os.makedirs(test_build)
 
 mksurePath()
 
