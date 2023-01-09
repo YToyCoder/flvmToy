@@ -152,6 +152,10 @@ class FlString : FlObj{
       if(loc >= len)
         throw "range out of index";
     }
+
+    const char* c_char(){
+      return chars;
+    }
 };
 
 // all global
@@ -163,7 +167,7 @@ class FlConstPool {
       return (iter == _hash_map.end() ? nullptr : iter->second);
     }
 
-    void *put(FlString *key, FlTagValue *value){ _hash_map[key->hash()] = value; }
+    void put(FlString *key, FlTagValue *value){ _hash_map[key->hash()] = value; }
 };
 
 class FlStringConstPool;
@@ -297,7 +301,19 @@ class FlStringConstPool {
 
 };
 
+class FlBinary {
+};
+
 class FlFileLoader {
+  static uint8_t MagicNumber;
+  public:
+    void load(FlString *filename){
+      std::ifstream file(filename->c_char(), std::ios::in | std::ios::binary);
+      // magic number >> F1
+      char mn;
+      file.read(&mn, 1);
+      // version
+    }
 };
 
 class FlExec;
