@@ -13,14 +13,16 @@ def log(msg):
 
 cc = "g++"
 
-log(f"root path {root}")
-log(f"test path {testFolder}")
-log(f"build path {test_build}")
+testFiles = [] 
 
-testFiles = os.listdir(testFolder)
+def list_all_test_files():
+  global testFiles
+  testFiles = os.listdir(testFolder)
 
-builtExe = []
-def build_file(file):
+# files that built by cmd
+builtExe = [] 
+
+def build_and_run_test_files(file):
   source = os.path.join(testFolder, file)
   log(f"build file {source}")
   if not os.path.isfile(source):
@@ -30,31 +32,54 @@ def build_file(file):
   cmd = f"{cc} {source} -o {target}"
   log(f"execute cmd : {cmd}")
   os.system(cmd)
+  # run
+  log(f"running test file : {target}")
+  log(f"begin ${target}:>>> ")
+  os.system(target)
+  log(f"end   ${target}:<<< ")
 
 def mksurePath():
   if not os.path.exists(test_build):
     os.makedirs(test_build)
 
-mksurePath()
+def run_cmd():
+  if len(sys.argv) > 1:
+    mstr = sys.argv[1]
+    if mstr == "clean":
+      os.system(f"rm -r {root}/build")
+      exit(0)
+    else :
+      temp = []
+      global testFiles
+      for f in testFiles:
+        if re.match(f".*{mstr}.*", f) != None:
+          temp.append(f)
+      testFiles = temp
 
-if len(sys.argv) > 1:
-  # testFiles = 
-  mstr = sys.argv[1]
-  if mstr == "clean":
-    os.system(f"rm -r {root}/build")
-    exit(0)
-  else :
-    temp = []
-    for f in testFiles:
-      if re.match(f".*{mstr}.*", f) != None:
-        temp.append(f)
-    testFiles = temp
+def build_cc_files():
+  for el in testFiles:
+    if el.endswith(".cc"):
+      build_and_run_test_files(el)
 
+def run():
+  # init log
+  log(f"root path {root}")
+  log(f"test path {testFolder}")
+  log(f"build path {test_build}")
+  log(f"compiler cmd is {cc}")
 
-for el in testFiles:
-  if el.endswith(".cc"):
-    build_file(el)
+  # make sure all the test path created
+  mksurePath()
 
-for t in builtExe:
-  log(f"testing {t} ...")
-  os.system(t)
+  # list test files
+  list_all_test_files()
+
+  # execute option -> like, clean
+  run_cmd()
+
+  # build and run all the test files
+  build_cc_files()
+
+if __name__ == "__main__":
+  # run
+  run()
