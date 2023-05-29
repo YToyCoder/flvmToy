@@ -1,11 +1,13 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-#include "MurmurHash2.cc"
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include "flvm.hpp"
+#include "MurmurHash2.h"
+
 // color print
 void COLOR_PRINT(const char* s, int color)
 {
@@ -242,7 +244,7 @@ class FlFrame {
       for(int i=0; i<current_exec->max_locals(); i++){
         slocals += locals[i].toString() + " ";
       }
-      size_t max_line_len = std::max(std::max(stks.size(), slocals.size()), head.size()) + 1;
+      size_t max_line_len = max(max(stks.size(), slocals.size()), head.size()) + 1;
       head += repeat("=", max_line_len - head.size());
       stks = append_eq_util(stks, max_line_len);
       slocals = append_eq_util(slocals, max_line_len);
