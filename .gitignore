@@ -2,3 +2,6 @@
 build
 test/bin
 **/__pycache__
+x64/
+.vs/
+flvmToy/x64/

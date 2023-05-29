@@ -16,6 +16,8 @@ void COLOR_PRINT(const char* s, int color)
   SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | color);
   printf(s);
   SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | 7);
+#else 
+  printf(s);
 #endif
 }
 

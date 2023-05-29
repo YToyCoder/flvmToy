@@ -4,6 +4,21 @@
   extern "C" {
 #endif
 
+FORCE_INLINE uint32_t rotl32 ( uint32_t x, int8_t r ){ return (x << r) | (x >> (32 - r)); }
+FORCE_INLINE uint64_t rotl64 ( uint64_t x, int8_t r ){ return (x << r) | (x >> (64 - r)); }
+FORCE_INLINE uint32_t rotr32 ( uint32_t x, int8_t r ){ return (x >> r) | (x << (32 - r)); }
+FORCE_INLINE uint64_t rotr64 ( uint64_t x, int8_t r ){ return (x >> r) | (x << (64 - r)); }
+
+FORCE_INLINE unsigned long long int rdtsc(){ 
+#if _GNC_
+  unsigned long long int x; 
+  __asm__ volatile ("rdtsc" : "=A" (x)); 
+  return x; 
+#else 
+  return 0;
+#endif
+}
+
 
 /* MurmurHash2, by Austin Appleby
 // Note - This code makes a few assumptions about how your machine behaves -
