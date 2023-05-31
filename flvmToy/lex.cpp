@@ -6,7 +6,6 @@ Lex::Lex(const std::string& rFilename): mFilename(rFilename), mState(LexState_Cr
 }
 
 bool Lex::init() {
-	mfstream.open(mFilename.c_str(),std::ios::out);
 	mState = LexState_Init;
 	return true;
 }
