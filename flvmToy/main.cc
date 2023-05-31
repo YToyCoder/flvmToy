@@ -1,6 +1,6 @@
 #include "flvm.hpp"
 
 int main(int argc, char** argv) {
-	printf("hello-world");
+	printf("flvm-toy-main\n");
 	return 0;
 }

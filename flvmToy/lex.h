@@ -10,6 +10,7 @@ public:
 	Lex(const std::string& rFilename);
 	bool init();
 protected:
+#define LexBufCapability 100
 	enum LexState {
 		LexState_Created = 0,
 		LexState_Init ,

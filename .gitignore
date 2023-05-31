@@ -5,3 +5,4 @@ test/bin
 x64/
 .vs/
 flvmToy/x64/
+flvmToy/**.txt
