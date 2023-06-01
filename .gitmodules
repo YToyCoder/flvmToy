@@ -1,0 +1,3 @@
+[submodule "flvmToy/vendor/icu"]
+	path = flvmToy/vendor/icu
+	url = https://github.com/YToyCoder/icu.git
