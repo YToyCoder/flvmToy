@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="unicode">
+      <UniqueIdentifier>{c43cdb64-ffb8-49c1-9998-a7b964c668d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="flvm.hpp">
@@ -29,6 +32,591 @@
     </ClInclude>
     <ClInclude Include="token.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\alphaindex.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\appendable.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\basictz.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\brkiter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\bytestream.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\bytestrie.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\bytestriebuilder.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\calendar.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\caniter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\casemap.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\char16ptr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\chariter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\choicfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\coleitr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\coll.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\compactdecimalformat.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\curramt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\currpinf.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\currunit.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\datefmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dbbi.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dcfmtsym.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\decimfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\displayoptions.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\docmain.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dtfmtsym.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dtintrv.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dtitvfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dtitvinf.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dtptngen.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\dtrule.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\edits.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\enumset.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\errorcode.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\fieldpos.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\filteredbrk.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\fmtable.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\format.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\formattednumber.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\formattedvalue.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\fpositer.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\gender.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\gregocal.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\icudataver.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\icuplug.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\idna.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\listformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\localebuilder.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\localematcher.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\localpointer.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\locdspnm.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\locid.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\measfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\measunit.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\measure.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\messagepattern.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\msgfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\normalizer2.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\normlzr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\nounit.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\numberformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\numberrangeformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\numfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\numsys.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\parseerr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\parsepos.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\platform.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\plurfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\plurrule.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ptypes.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\putil.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\rbbi.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\rbnf.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\rbtz.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\regex.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\region.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\reldatefmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\rep.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\resbund.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\schriter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\scientificnumberformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\search.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\selfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\simpleformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\simplenumberformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\simpletz.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\smpdtfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\sortkey.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\std_string.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\strenum.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\stringoptions.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\stringpiece.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\stringtriebuilder.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\stsearch.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\symtable.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tblcoll.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\timezone.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tmunit.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tmutamt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tmutfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\translit.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tzfmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tznames.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tzrule.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\tztrans.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ubidi.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ubiditransform.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ubrk.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucal.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucasemap.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucat.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uchar.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucharstrie.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucharstriebuilder.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uchriter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uclean.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucnv.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucnv_cb.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucnv_err.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucnvsel.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucol.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucoleitr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uconfig.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucpmap.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucptrie.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucsdet.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ucurr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\udat.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\udata.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\udateintervalformat.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\udatpg.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\udisplaycontext.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\udisplayoptions.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uenum.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ufieldpositer.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uformattable.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uformattednumber.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uformattedvalue.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ugender.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uidna.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uiter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uldnames.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ulistformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uloc.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ulocdata.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\umachine.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\umisc.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\umsg.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\umutablecptrie.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unifilt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unifunct.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unimatch.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unirepl.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uniset.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unistr.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unorm.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unorm2.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unum.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unumberformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unumberoptions.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unumberrangeformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\unumsys.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uobject.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\upluralrules.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uregex.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uregion.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ureldatefmt.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\urename.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\urep.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ures.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uscript.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\usearch.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uset.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\usetiter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ushape.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\usimplenumberformatter.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uspoof.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\usprep.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ustdio.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ustream.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ustring.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\ustringtrie.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utext.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utf.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utf_old.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utf8.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utf16.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utf32.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utmscale.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utrace.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utrans.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\utypes.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uvernum.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\uversion.h">
+      <Filter>unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\icu\vtzone.h">
+      <Filter>unicode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
