@@ -11,16 +11,21 @@ enum TokenKind : uint8_t
 	TokMul = 3, // *
 	TokDiv = 4, // /
 	TokLParent = 5, // (
-	TokRParent = 6  // )
+	TokRParent = 6,  // )
+	// control
+	TokEol, // end of line => \n
 };
 
 // 
 struct Position {
-	const uint32_t mX;
-	const uint32_t mY;
+	uint32_t mX;
+	uint32_t mY;
 	std::string to_string(const std::string spliter = ",") const {
 		return std::to_string(mX) + spliter + std::to_string(mY);
 	}
+
+	Position& next_line() { mY++; return *this; }
+	Position& next_col()  { mX++; return *this; }
 };
 
 class Token {

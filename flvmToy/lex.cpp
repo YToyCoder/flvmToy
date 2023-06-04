@@ -1,11 +1,18 @@
-#include "lex.h"
 #include <stdio.h>
+#include "lex.h"
 
 
-Lex::Lex(const std::string& rFilename): mFilename(rFilename), mState(LexState_Created) {
+Lex::Lex(const std::string& rFilename)
+	: mFilename(rFilename), mState(LexState_Created), mFileHandle(nullptr),
+		mBufLimit(0), mBufCursor(0),mFilePosition({0,0})
+{
 }
 
 bool Lex::init() {
+	mFileHandle = u_fopen(mFilename.c_str(), "r", NULL, NULL);
+	if (mFileHandle == NULL) return false;
+	mBufCursor = 0;
+	mBufLimit = 0;
 	mState = LexState_Init;
 	return true;
 }
@@ -23,5 +30,72 @@ bool Lex::check_state() const {
 
 // todo
 Token Lex::fetch_token() {
-	return Token{ TokId, {0,0}, {0,0}};
+	UChar32 cp = codepoint();
+	UChar uc = peek_char();
+	if (is_eol(uc)) {
+		return one_char_token(TokEol);
+	}
+	else if (is_alpha(cp) || is_underscore(uc)) {
+		return alphabetic_start_token();
+	}
+	else {
+		// operator : + - * /
+		switch (get_cchar_from_uchar(uc)) {
+			case '+': return one_char_token(TokAdd);
+			case '-': return one_char_token(TokSub);
+			case '*': return one_char_token(TokMul);
+			case '/': return one_char_token(TokDiv);
+		}
+	}
+	// need throw exception 
+	// reach error
+	throw std::exception("not support token type, start with");
+}
+
+void Lex::fill_buffer(){
+	mBufLimit = u_file_read(mbuf, BufSize, mFileHandle);
+	mBufCursor = 0;
+}
+
+// char operations
+UChar Lex::next_char() {
+	try_ensure_buf();
+	// check buffer has content
+	// the file may have been enter eof,
+	// if does not contain the char , 
+	// there will be need throw an exception
+	if (mBufLimit == 0) {
+		// do throw 
+		throw std::exception("encounter eof while try to get char!");
+	}
+	if (is_eol(peek_char())) {
+		mFilePosition.next_line();
+	}
+	else {
+		mFilePosition.next_col();
+	}
+	return mbuf[mBufCursor++];
+}
+
+void Lex::try_ensure_buf() {
+	if (mBufCursor >= mBufLimit) {
+		fill_buffer();
+	}
+}
+
+Token Lex::alphabetic_start_token() {
+	Position token_start = mFilePosition;
+	UStr str;
+	UChar32 cp;
+	UChar uc;
+	auto char_is_id_iner = [this, cp, uc]() -> bool {
+		return is_alpha(cp) || is_underscore(uc) || is_numeric(cp);
+	};
+	do {
+		cp = codepoint();
+		uc = next_char();
+		str.append(cp);
+	} while (has_char() && char_is_id_iner());
+	Position token_end = mFilePosition;
+	return Token{TokId, token_start, token_end};
 }
