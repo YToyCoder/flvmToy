@@ -339,6 +339,7 @@
     <ClCompile Include="lex.cpp" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="MurmurHash2.cc" />
+    <ClCompile Include="token.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
