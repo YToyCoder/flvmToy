@@ -25,6 +25,19 @@ enum TokendFlag : uint8_t
 	TokFlagNOTTok = 1
 };
 
+std::string tk_to_str(uint8_t tk) {
+	switch (tk) {
+	case TokId:  return "Id";
+	case TokAdd: return "Add";
+	case TokSub: return "Sub";
+	case TokMul: return "Mul";
+	case TokDiv: return "Div";
+	case TokLParent: return "LParent";
+	case TokRParent: return "RParent";
+	case TokEol: return "Eol";
+	default:		 return "?";
+	}
+}
 
 // 
 struct Position {
@@ -80,4 +93,11 @@ uint16_t token_scol(token_t tok) {
 uint16_t token_ecol(token_t tok) {
 	uint16_t* pos= (uint16_t*)(&tok) + 3;
 	return *pos;
+}
+
+std::string token_to_str(token_t tok) {
+	return tk_to_str(tok) + "-" +
+				 std::to_string(token_row(tok)) + "-" + 
+				 std::to_string(token_scol(tok)) + "-" + 
+				 std::to_string(token_ecol(tok));
 }

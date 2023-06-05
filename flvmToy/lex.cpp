@@ -4,7 +4,7 @@
 
 Lex::Lex(const std::string& rFilename)
 	: mFilename(rFilename), mState(LexState_Created), mFileHandle(nullptr),
-	mBufLimit(0), mBufCursor(0), mFilePosition({ 0,0 }) 
+	mBufLimit(0), mBufCursor(0), mFilePosition({ 0,0 }), mtok(InvalidTok)
 {
 }
 
@@ -33,6 +33,7 @@ bool Lex::check_state() const {
 
 // token 
 bool Lex::has_token() const {
+	return TokIsValid(mtok) || has_char();
 }
 
 token_t Lex::next_token() {

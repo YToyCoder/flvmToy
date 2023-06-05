@@ -21,6 +21,15 @@ public:
 public:
 	Lex(const std::string& rFilename);
 	bool init();
+
+	// check if have token to read
+	bool has_token() const;
+	/*
+	* return current token, fill token cache with next
+	*/
+	token_t next_token();
+	// get current token
+	token_t peek_token();
 protected:
 #define LexBufCapability 100
 	enum LexState {
@@ -29,15 +38,8 @@ protected:
 		LexState_Closed
 	};
 	// checking state
-	bool check_state() const ;
-	// token
-	inline bool has_token() const;
-	/*
-	* return current token, fill token cache with next
-	*/
-	inline token_t next_token();
-	inline token_t peek_token();
-	token_t fetch_token();
+	inline bool check_state() const ;
+	inline token_t fetch_token();
 	inline token_t one_char_token(TokenKind _kind) 
 	{ 
 		token_t tok = create_token(_kind,  mFilePosition.mY, mFilePosition.mX, mFilePosition.mX + 1);
@@ -52,7 +54,7 @@ protected:
 	inline UChar next_char(); 
 	inline UChar peek_char() { try_ensure_buf(); return mbuf[mBufCursor]; }
 	inline UChar32 codepoint() { 
-		try_ensure_buf();  
+		try_ensure_buf();
 		UChar32 cp;
 		U16_GET(mbuf, 0, mBufCursor, mBufLimit, cp);
 		return cp;
