@@ -4,6 +4,7 @@
 
 enum TokenKind : uint8_t
 {
+	// 
 	TokId  = 0,
 	// operand 
 	TokAdd = 1, // +
@@ -14,7 +15,16 @@ enum TokenKind : uint8_t
 	TokRParent = 6,  // )
 	// control
 	TokEol, // end of line => \n
+	// not valid token
+	TokNan,
 };
+
+enum TokendFlag : uint8_t
+{
+	TokFlagISTok = 0,
+	TokFlagNOTTok = 1
+};
+
 
 // 
 struct Position {
@@ -28,16 +38,46 @@ struct Position {
 	Position& next_col()  { mX++; return *this; }
 };
 
-class Token {
-public:
-	std::pair<Position, Position> GetPosition() const 
-	{ return std::make_pair(mStart, mEnd); }
-	TokenKind kind() const { return mKind; }
+// position: column row 16 * 2 = 32
+// token --> unsigned long long
+// <- 08 -> | <- 08 -> | <-- 16 --> | <-- 16 --> | <-- 16 -->
+// |	  	  | tok-kind |     row    | start: col | end: row |
+typedef uint64_t token_t;
 
-	Token(const TokenKind _kind, const Position& _start, const Position& _end): 
-		mKind(_kind), mStart(_start), mEnd(_end){}
-private:
-	TokenKind mKind;
-	Position mStart;
-	Position mEnd;
-};
+#define InvalidTok (0x0100000000000000)
+#define TokIsValid(t) (t == InvalidTok)
+
+token_t create_token(TokenKind _kind, uint16_t row, uint16_t start_col, uint16_t end_col) {
+	token_t tok = 0x0;
+	uint8_t* byte_pointer = (uint8_t*)(&tok);
+	*byte_pointer = TokFlagISTok;
+	uint8_t* kind_p = byte_pointer + 1;
+	*kind_p = _kind;
+	uint16_t* prow = (uint16_t*)(byte_pointer + 2);
+	*prow = row;
+	uint16_t* pstart_col = (uint16_t*)(byte_pointer + 4);
+	*pstart_col = start_col;
+	uint16_t* pend_col = (uint16_t*)(byte_pointer + 6);
+	*pend_col = row;
+	return tok;
+}
+
+bool token_is_kind(token_t tok,TokenKind _kind) {
+	uint8_t* pkind= (uint8_t*)(&tok) + 1;
+	return *pkind == _kind;
+}
+
+uint16_t token_row(token_t tok) {
+	uint16_t* pos= (uint16_t*)(&tok) + 1;
+	return *pos;
+}
+
+uint16_t token_scol(token_t tok) {
+	uint16_t* pos= (uint16_t*)(&tok) + 2;
+	return *pos;
+}
+
+uint16_t token_ecol(token_t tok) {
+	uint16_t* pos= (uint16_t*)(&tok) + 3;
+	return *pos;
+}

@@ -31,10 +31,16 @@ protected:
 	// checking state
 	bool check_state() const ;
 	// token
-	Token fetch_token();
-	inline Token one_char_token(TokenKind _kind) 
+	inline bool has_token() const;
+	/*
+	* return current token, fill token cache with next
+	*/
+	inline token_t next_token();
+	inline token_t peek_token();
+	token_t fetch_token();
+	inline token_t one_char_token(TokenKind _kind) 
 	{ 
-		Token tok{ _kind, mFilePosition, {mFilePosition.mX + 1, mFilePosition.mY} }; 
+		token_t tok = create_token(_kind,  mFilePosition.mY, mFilePosition.mX, mFilePosition.mX + 1);
 		next_char(); // drop char
 		return tok;
 	}
@@ -52,7 +58,7 @@ protected:
 		return cp;
 	}
 	// string operation
-	Token alphabetic_start_token();
+	token_t alphabetic_start_token();
 protected:
 	inline char get_cchar_from_uchar(UChar uc) { return uc & 0x007F; }
 	// end of line 
@@ -69,4 +75,5 @@ private:
 	uint16_t mBufLimit;
 	uint16_t mBufCursor;
 	Position mFilePosition;
+	token_t mtok;
 };

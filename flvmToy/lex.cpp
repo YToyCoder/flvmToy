@@ -4,7 +4,7 @@
 
 Lex::Lex(const std::string& rFilename)
 	: mFilename(rFilename), mState(LexState_Created), mFileHandle(nullptr),
-		mBufLimit(0), mBufCursor(0),mFilePosition({0,0})
+	mBufLimit(0), mBufCursor(0), mFilePosition({ 0,0 }) 
 {
 }
 
@@ -14,6 +14,9 @@ bool Lex::init() {
 	mBufCursor = 0;
 	mBufLimit = 0;
 	mState = LexState_Init;
+
+	// read the first token
+	next_token();
 	return true;
 }
 
@@ -28,8 +31,23 @@ bool Lex::check_state() const {
 	return false;
 }
 
+// token 
+bool Lex::has_token() const {
+}
+
+token_t Lex::next_token() {
+	check_state();
+	token_t tok = mtok;
+	mtok = fetch_token();
+	return tok;
+}
+
+token_t Lex::peek_token() {
+	return mtok;
+}
+
 // todo
-Token Lex::fetch_token() {
+token_t Lex::fetch_token() {
 	UChar32 cp = codepoint();
 	UChar uc = peek_char();
 	if (is_eol(uc)) {
@@ -83,7 +101,7 @@ void Lex::try_ensure_buf() {
 	}
 }
 
-Token Lex::alphabetic_start_token() {
+token_t Lex::alphabetic_start_token() {
 	Position token_start = mFilePosition;
 	UStr str;
 	UChar32 cp;
@@ -97,5 +115,5 @@ Token Lex::alphabetic_start_token() {
 		str.append(cp);
 	} while (has_char() && char_is_id_iner());
 	Position token_end = mFilePosition;
-	return Token{TokId, token_start, token_end};
+	return create_token(TokId, token_start.mY, token_start.mX, token_end.mX);
 }
