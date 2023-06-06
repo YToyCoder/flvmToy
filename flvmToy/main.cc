@@ -1,12 +1,22 @@
 #include "flvm.hpp"
 #include "unicode/brkiter.h"
 #include "token.h"
+#include "lex.h"
+#include <stdio.h>
+
+#define FLVM_TEST
 #ifdef FLVM_TEST
 
 void do_test()
 {
 #ifdef TOK_TEST
 	tok_test1();
+	Lex lex("new.txt");
+	lex.init();
+	while (lex.has_token()) {
+		token_t t = lex.next_token();
+		printf(">> %s\n", token_to_str(t).c_str());
+	}
 #endif
 }
 
