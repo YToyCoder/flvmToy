@@ -39,6 +39,7 @@ protected:
 	};
 	// checking state
 	inline bool check_state() const ;
+	inline void ignore_space();
 	inline token_t fetch_token();
 	inline token_t one_char_token(TokenKind _kind) 
 	{ 
