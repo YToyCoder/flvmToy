@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <iostream>
 #include "lex.h"
+#include "unicode/ustream.h"
 
 
 Lex::Lex(const std::string& rFilename)
@@ -46,9 +48,14 @@ token_t Lex::next_token() {
 token_t Lex::peek_token() {
 	return mtok;
 }
-
+void Lex::ignore_space() {
+	while (has_char() && u_isJavaSpaceChar(codepoint())) {
+		next_char();
+	}
+}
 // todo
 token_t Lex::fetch_token() {
+	ignore_space();
 	UChar32 cp = codepoint();
 	UChar uc = peek_char();
 	if (is_eol(uc)) {
@@ -68,6 +75,9 @@ token_t Lex::fetch_token() {
 	}
 	// need throw exception 
 	// reach error
+#if 1
+	printf("error char is %c\n", (char)uc);
+#endif
 	throw std::exception("not support token type, start with");
 }
 
@@ -107,14 +117,17 @@ token_t Lex::alphabetic_start_token() {
 	UStr str;
 	UChar32 cp;
 	UChar uc;
-	auto char_is_id_iner = [this, cp, uc]() -> bool {
+	auto char_is_id_iner = [this](UChar32 cp, UChar uc) -> bool {
 		return is_alpha(cp) || is_underscore(uc) || is_numeric(cp);
 	};
 	do {
 		cp = codepoint();
 		uc = next_char();
 		str.append(cp);
-	} while (has_char() && char_is_id_iner());
+	} while (has_char() && char_is_id_iner(codepoint(), peek_char()));
+#if 0
+	std::cout << "read token str " << str << std::endl;
+#endif
 	Position token_end = mFilePosition;
 	return create_token(TokId, token_start.mY, token_start.mX, token_end.mX);
 }
