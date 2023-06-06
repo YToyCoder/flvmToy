@@ -1,7 +1,8 @@
 #include "token.h"
 
-std::string tk_to_str(uint8_t tk) {
-	switch (tk) {
+std::string tk_to_str(token_t tok) {
+	uint8_t* tk= (uint8_t*)(&tok) + 1;
+	switch (*tk) {
 	case TokId:  return "Id";
 	case TokAdd: return "Add";
 	case TokSub: return "Sub";
@@ -25,7 +26,7 @@ token_t create_token(TokenKind _kind, uint16_t row, uint16_t start_col, uint16_t
 	uint16_t* pstart_col = (uint16_t*)(byte_pointer + 4);
 	*pstart_col = start_col;
 	uint16_t* pend_col = (uint16_t*)(byte_pointer + 6);
-	*pend_col = row;
+	*pend_col = end_col;
 	return tok;
 }
 
