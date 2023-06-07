@@ -82,6 +82,6 @@ private:
 	UChar mbuf[BufSize];
 	uint16_t mBufLimit;
 	uint16_t mBufCursor;
-	Position mFilePosition;
+	position_t mFilePosition;
 	token_t mtok;
 };

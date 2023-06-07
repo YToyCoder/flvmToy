@@ -2,12 +2,15 @@
 #include <string>
 #include <stdint.h>
 
+#include "common.h"
+
 #define TOK_TEST
 
 enum TokenKind : uint8_t
 {
 	TokId  = 0,
-	TokNum,
+	TokInt,
+	TokFloat,
 	// operand 
 	TokAdd , // +
 	TokSub , // -
@@ -27,18 +30,6 @@ enum TokendFlag : uint8_t
 	TokFlagISTok = 0,
 	TokFlagNOTTok = 1
 };
-
-struct Position {
-	uint32_t mX;
-	uint32_t mY;
-	std::string to_string(const std::string spliter = ",") const {
-		return std::to_string(mX) + spliter + std::to_string(mY);
-	}
-
-	Position& next_line() { mY++;mX = 0;	return *this; }
-	Position& next_col()  { mX++;					return *this; }
-};
-
 // position: column row 16 * 2 = 32
 // token --> unsigned long long
 // <- 08 -> | <- 08 -> | <-- 16 --> | <-- 16 --> | <-- 16 -->

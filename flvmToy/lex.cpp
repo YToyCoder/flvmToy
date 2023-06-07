@@ -121,7 +121,7 @@ void Lex::try_ensure_buf() {
 	}
 }
 token_t Lex::numeric_token() {
-	Position token_start = mFilePosition;
+	position_t token_start = mFilePosition;
 	auto proc_num = [this]() {
 		UChar32 cp;
 		UChar uc;
@@ -134,13 +134,13 @@ token_t Lex::numeric_token() {
 	if (has_char() && is_dot(peek_char())) {
 		next_char(); // drop dot
 		proc_num();
-		return create_token(TokNum, token_start.mY, token_start.mX, mFilePosition.mX);
+		return create_token(TokInt, token_start.mY, token_start.mX, mFilePosition.mX);
 	}
-	return create_token(TokNum, token_start.mY, token_start.mX, mFilePosition.mX);
+	return create_token(TokFloat, token_start.mY, token_start.mX, mFilePosition.mX);
 }
 
 token_t Lex::alphabetic_start_token() {
-	Position token_start = mFilePosition;
+	position_t token_start = mFilePosition;
 	UStr str;
 	UChar32 cp;
 	UChar uc;
@@ -155,6 +155,6 @@ token_t Lex::alphabetic_start_token() {
 #if 0
 	std::cout << "read token str " << str << std::endl;
 #endif
-	Position token_end = mFilePosition;
+	position_t token_end = mFilePosition;
 	return create_token(TokId, token_start.mY, token_start.mX, token_end.mX);
 }
