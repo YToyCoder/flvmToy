@@ -23,7 +23,7 @@ public:
 	bool init();
 
 	// check if have token to read
-	bool has_token() const;
+	bool has_token();
 	/*
 	* return current token, fill token cache with next
 	*/
@@ -51,7 +51,9 @@ protected:
 	void try_ensure_buf();
 	void fill_buffer();
 	// char operations
-	inline bool has_char() const { return mBufLimit > mBufCursor || !u_feof(mFileHandle); }
+	inline bool has_char() { 
+		return mBufLimit > mBufCursor || !u_feof(mFileHandle); 
+	}
 	inline UChar next_char(); 
 	inline UChar peek_char() { try_ensure_buf(); return mbuf[mBufCursor]; }
 	inline UChar32 codepoint() { 
@@ -62,14 +64,17 @@ protected:
 	}
 	// string operation
 	token_t alphabetic_start_token();
+	token_t numeric_token();
 protected:
 	inline char get_cchar_from_uchar(UChar uc) { return uc & 0x007F; }
 	// end of line 
 	inline bool is_eol(UChar c)						{ return get_cchar_from_uchar(c) == '\n'; }
 	inline bool is_eol(UChar32 codepoint) { return u_charType(codepoint) == U_CONTROL_CHAR; }
+	inline bool is_eof(UChar uc)					{ return uc == U_EOF;  }
 	inline bool is_alpha(UChar32 codepoint) { return u_isalpha(codepoint); }
 	inline bool is_underscore(UChar c)		{ return (char)(c & 0x007F) == '_'; }
 	inline bool is_numeric(UChar32 cp)		{ return u_isalnum(cp); }
+	inline bool is_dot(UChar uc)					{ return get_cchar_from_uchar(uc) == '.'; }
 private:
 	std::string mFilename;
 	LexState mState;

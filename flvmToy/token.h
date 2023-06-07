@@ -6,17 +6,18 @@
 
 enum TokenKind : uint8_t
 {
-	// 
 	TokId  = 0,
+	TokNum,
 	// operand 
-	TokAdd = 1, // +
-	TokSub = 2, // -
-	TokMul = 3, // *
-	TokDiv = 4, // /
-	TokLParent = 5, // (
-	TokRParent = 6,  // )
+	TokAdd , // +
+	TokSub , // -
+	TokMul , // *
+	TokDiv , // /
+	TokLParent , // (
+	TokRParent ,  // )
 	// control
 	TokEol, // end of line => \n
+	TokEof, // end of file
 	// not valid token
 	TokNan,
 };
@@ -27,9 +28,6 @@ enum TokendFlag : uint8_t
 	TokFlagNOTTok = 1
 };
 
-std::string tk_to_str(uint8_t tk);
-
-// 
 struct Position {
 	uint32_t mX;
 	uint32_t mY;
@@ -37,8 +35,8 @@ struct Position {
 		return std::to_string(mX) + spliter + std::to_string(mY);
 	}
 
-	Position& next_line() { mY++; return *this; }
-	Position& next_col()  { mX++; return *this; }
+	Position& next_line() { mY++;mX = 0;	return *this; }
+	Position& next_col()  { mX++;					return *this; }
 };
 
 // position: column row 16 * 2 = 32
@@ -48,8 +46,9 @@ struct Position {
 typedef uint64_t token_t;
 
 #define InvalidTok (0x0100000000000000)
-#define TokIsValid(t) (t == InvalidTok)
+#define TokIsValid(t) (t != InvalidTok)
 
+std::string tk_to_str(token_t tk);
 token_t create_token(TokenKind _kind, uint16_t row, uint16_t start_col, uint16_t end_col);
 bool token_is_kind(token_t tok, TokenKind _kind); 
 uint16_t token_row(token_t tok);

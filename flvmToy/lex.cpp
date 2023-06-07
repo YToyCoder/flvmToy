@@ -34,7 +34,7 @@ bool Lex::check_state() const {
 }
 
 // token 
-bool Lex::has_token() const {
+bool Lex::has_token() {
 	return TokIsValid(mtok) || has_char();
 }
 
@@ -56,13 +56,22 @@ void Lex::ignore_space() {
 // todo
 token_t Lex::fetch_token() {
 	ignore_space();
+	if (!has_char()) {
+		return InvalidTok;
+	}
 	UChar32 cp = codepoint();
 	UChar uc = peek_char();
 	if (is_eol(uc)) {
 		return one_char_token(TokEol);
 	}
+	else if (is_eof(uc)) {
+		return one_char_token(TokEof);
+	}
 	else if (is_alpha(cp) || is_underscore(uc)) {
 		return alphabetic_start_token();
+	}
+	else if (is_numeric(cp)) {
+		return numeric_token();
 	}
 	else {
 		// operator : + - * /
@@ -82,7 +91,7 @@ token_t Lex::fetch_token() {
 }
 
 void Lex::fill_buffer(){
-	mBufLimit = u_file_read(mbuf, BufSize, mFileHandle);
+	mBufLimit = u_file_read(mbuf, BufSize, mFileHandle) - 1;
 	mBufCursor = 0;
 }
 
@@ -107,9 +116,27 @@ UChar Lex::next_char() {
 }
 
 void Lex::try_ensure_buf() {
-	if (mBufCursor >= mBufLimit) {
+	if (mBufCursor >= mBufLimit && !u_feof(mFileHandle)) {
 		fill_buffer();
 	}
+}
+token_t Lex::numeric_token() {
+	Position token_start = mFilePosition;
+	auto proc_num = [this]() {
+		UChar32 cp;
+		UChar uc;
+		do {
+			cp = codepoint();
+			uc = next_char();
+		} while (has_char() && is_numeric(codepoint()));
+	};
+	proc_num();
+	if (has_char() && is_dot(peek_char())) {
+		next_char(); // drop dot
+		proc_num();
+		return create_token(TokNum, token_start.mY, token_start.mX, mFilePosition.mX);
+	}
+	return create_token(TokNum, token_start.mY, token_start.mX, mFilePosition.mX);
 }
 
 token_t Lex::alphabetic_start_token() {
