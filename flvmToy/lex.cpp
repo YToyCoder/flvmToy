@@ -53,6 +53,11 @@ void Lex::ignore_space() {
 		next_char();
 	}
 }
+
+Lex::UStr string_of_tok()
+{
+	return "";
+}
 // todo
 token_t Lex::fetch_token() {
 	ignore_space();

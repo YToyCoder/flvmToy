@@ -11,7 +11,8 @@ std::string tk_to_str(token_t tok) {
 	case TokLParent: return "LParent";
 	case TokRParent: return "RParent";
 	case TokEol: return "Eol";
-	case TokNum: return "Num";
+	case TokFloat:
+	case TokInt: return "Num";
 	default:		 return "?";
 	}
 }

@@ -13,7 +13,9 @@ class IRNode
 public:
 	IRNode() :IRNode(0, {0,0}) {}
 	IRNode(token_t _tok, position_t _s) 
-		: _m_tok(_tok), _m_begin_pos(_s), _m_end_pos({0,0}) {};
+		: IRNode(_tok,_s, {0,0}) {};
+	IRNode(token_t _tok, position_t _s, position_t _e) 
+		: _m_tok(_tok), _m_begin_pos(_s), _m_end_pos(_e) {};
 
 	virtual IRNodeTag tag() = 0;
 
@@ -41,7 +43,10 @@ class IR_Id: public IRNode
 {
 	IRNode_Impl(IRTag_Id)
 public:
-	IR_Id(token_t tok, position_t _s): IRNode(tok, _s) {}
+	IR_Id(token_t tok, position_t _s)
+		: IRNode(tok, _s) {}
+	IR_Id(token_t tok, position_t _s, position_t _e)
+		: IRNode(tok, _s, _e){}
 private:
 };
 
@@ -49,10 +54,20 @@ private:
 class IR_Num : public IRNode
 {
 	IRNode_Impl(IRTag_Num)
+		friend class Parser;
 public:
-	IR_Num(token_t tok, position_t _s): IRNode(tok, _s){}
+	IR_Num(token_t tok, position_t _s): IRNode(tok, _s), _m_num(){}
+	IR_Num(token_t tok, position_t _s, position_t _e)
+		: IRNode(tok, _s, _e), _m_num(){}
 	bool is_int()		{ return token_is_kind(token(), TokInt); }
 	bool is_float() { return token_is_kind(token(), TokFloat); }
+	int			get_int() { return _m_num.i_value; }
+	double	get_db()	{ return _m_num.db_value; }
+private:
+	union {
+		double db_value;
+		int		 i_value;
+	} _m_num;
 };
 
 // binary node

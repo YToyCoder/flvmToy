@@ -30,6 +30,8 @@ public:
 	token_t next_token();
 	// get current token
 	token_t peek_token();
+	// get the string value of token
+	UStr string_of_tok(token_t t);
 protected:
 #define LexBufCapability 100
 	enum LexState {

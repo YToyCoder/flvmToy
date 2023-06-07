@@ -644,5 +644,8 @@
     <ClCompile Include="ir.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="parse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
