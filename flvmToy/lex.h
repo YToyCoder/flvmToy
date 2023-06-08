@@ -45,7 +45,7 @@ protected:
 	inline token_t fetch_token();
 	inline token_t one_char_token(TokenKind _kind) 
 	{ 
-		token_t tok = create_token(_kind,  mFilePosition.mY, mFilePosition.mX, mFilePosition.mX + 1);
+		token_t tok = create_token(_kind, m_file_offset, 1);
 		next_char(); // drop char
 		return tok;
 	}
@@ -78,12 +78,14 @@ protected:
 	inline bool is_numeric(UChar32 cp)		{ return u_isalnum(cp); }
 	inline bool is_dot(UChar uc)					{ return get_cchar_from_uchar(uc) == '.'; }
 private:
-	std::string mFilename;
 	LexState mState;
+
+	std::string mFilename;
 	UFILE* mFileHandle;
+	uint32_t	m_file_offset;
+
 	UChar mbuf[BufSize];
 	uint16_t mBufLimit;
 	uint16_t mBufCursor;
-	position_t mFilePosition;
 	token_t mtok;
 };

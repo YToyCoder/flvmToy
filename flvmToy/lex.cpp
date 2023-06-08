@@ -6,7 +6,7 @@
 
 Lex::Lex(const std::string& rFilename)
 	: mFilename(rFilename), mState(LexState_Created), mFileHandle(nullptr),
-	mBufLimit(0), mBufCursor(0), mFilePosition({ 0,0 }), mtok(InvalidTok)
+	mBufLimit(0), mBufCursor(0), mtok(InvalidTok)
 {
 }
 
@@ -54,7 +54,7 @@ void Lex::ignore_space() {
 	}
 }
 
-Lex::UStr string_of_tok()
+Lex::UStr Lex::string_of_tok(token_t tok)
 {
 	return "";
 }
@@ -111,12 +111,7 @@ UChar Lex::next_char() {
 		// do throw 
 		throw std::exception("encounter eof while try to get char!");
 	}
-	if (is_eol(peek_char())) {
-		mFilePosition.next_line();
-	}
-	else {
-		mFilePosition.next_col();
-	}
+	m_file_offset++;
 	return mbuf[mBufCursor++];
 }
 
@@ -126,7 +121,7 @@ void Lex::try_ensure_buf() {
 	}
 }
 token_t Lex::numeric_token() {
-	position_t token_start = mFilePosition;
+	uint32_t token_start = m_file_offset;
 	auto proc_num = [this]() {
 		UChar32 cp;
 		UChar uc;
@@ -139,13 +134,13 @@ token_t Lex::numeric_token() {
 	if (has_char() && is_dot(peek_char())) {
 		next_char(); // drop dot
 		proc_num();
-		return create_token(TokInt, token_start.mY, token_start.mX, mFilePosition.mX);
+		return create_token(TokInt, token_start, m_file_offset - token_start);
 	}
-	return create_token(TokFloat, token_start.mY, token_start.mX, mFilePosition.mX);
+	return create_token(TokFloat, token_start, m_file_offset - token_start);
 }
 
 token_t Lex::alphabetic_start_token() {
-	position_t token_start = mFilePosition;
+	uint32_t token_start = m_file_offset;
 	UStr str;
 	UChar32 cp;
 	UChar uc;
@@ -160,6 +155,5 @@ token_t Lex::alphabetic_start_token() {
 #if 0
 	std::cout << "read token str " << str << std::endl;
 #endif
-	position_t token_end = mFilePosition;
-	return create_token(TokId, token_start.mY, token_start.mX, token_end.mX);
+	return create_token(TokId, token_start, m_file_offset - token_start);
 }

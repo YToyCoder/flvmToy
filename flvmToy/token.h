@@ -34,17 +34,19 @@ enum TokendFlag : uint8_t
 // token --> unsigned long long
 // <- 08 -> | <- 08 -> | <-- 16 --> | <-- 16 --> | <-- 16 -->
 // |	  	  | tok-kind |     row    | start: col | end: row |
+// | <- 08 -> | <- 08 -> | <-- 16 --> | <-- 16 --> | <-- 16 -->
+// | tok-kind |		offset |		file--offset				 |					 |
 typedef uint64_t token_t;
 
 #define InvalidTok (0x0100000000000000)
 #define TokIsValid(t) (t != InvalidTok)
 
 std::string tk_to_str(token_t tk);
-token_t create_token(TokenKind _kind, uint16_t row, uint16_t start_col, uint16_t end_col);
+token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset);
 bool token_is_kind(token_t tok, TokenKind _kind); 
-uint16_t token_row(token_t tok);
-uint16_t token_scol(token_t tok);
-uint16_t token_ecol(token_t tok); 
+uint32_t tok_foffset(token_t tok);
+uint32_t tok_end(token_t tok);
+uint32_t tok_len(token_t tok);
 std::string token_to_str(token_t tok);
 
 #ifdef TOK_TEST
