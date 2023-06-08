@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <cstdint>
+#include <map>
 
 #include "unicode/utf16.h"
 #include "unicode/uchar.h"
@@ -31,7 +32,7 @@ public:
 	// get current token
 	token_t peek_token();
 	// get the string value of token
-	UStr string_of_tok(token_t t);
+	UStr token_string(token_t tok);
 protected:
 #define LexBufCapability 100
 	enum LexState {
@@ -88,4 +89,6 @@ private:
 	uint16_t mBufLimit;
 	uint16_t mBufCursor;
 	token_t mtok;
+	
+	std::map<uint32_t, UStr> m_str;
 };

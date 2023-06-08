@@ -54,10 +54,6 @@ void Lex::ignore_space() {
 	}
 }
 
-Lex::UStr Lex::string_of_tok(token_t tok)
-{
-	return "";
-}
 // todo
 token_t Lex::fetch_token() {
 	ignore_space();
@@ -122,20 +118,24 @@ void Lex::try_ensure_buf() {
 }
 token_t Lex::numeric_token() {
 	uint32_t token_start = m_file_offset;
-	auto proc_num = [this]() {
+	UStr str;
+	auto proc_num = [this](UStr& str) {
 		UChar32 cp;
 		UChar uc;
 		do {
 			cp = codepoint();
 			uc = next_char();
+			str += uc;
 		} while (has_char() && is_numeric(codepoint()));
 	};
-	proc_num();
+	proc_num(str);
 	if (has_char() && is_dot(peek_char())) {
 		next_char(); // drop dot
-		proc_num();
+		proc_num(str);
+		m_str.insert(std::make_pair(token_start, str));
 		return create_token(TokInt, token_start, m_file_offset - token_start);
 	}
+	m_str.insert(std::make_pair(token_start, str));
 	return create_token(TokFloat, token_start, m_file_offset - token_start);
 }
 
@@ -155,5 +155,11 @@ token_t Lex::alphabetic_start_token() {
 #if 0
 	std::cout << "read token str " << str << std::endl;
 #endif
+	m_str.insert(std::make_pair(token_start, str));
 	return create_token(TokId, token_start, m_file_offset - token_start);
+}
+
+Lex::UStr Lex::token_string(token_t tok)
+{
+	return m_str[tok_foffset(tok)];
 }
