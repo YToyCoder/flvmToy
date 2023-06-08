@@ -44,6 +44,7 @@ typedef uint64_t token_t;
 std::string tk_to_str(token_t tk);
 token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset);
 bool token_is_kind(token_t tok, TokenKind _kind); 
+TokenKind token_kind(token_t tok);
 uint32_t tok_foffset(token_t tok);
 uint32_t tok_end(token_t tok);
 uint32_t tok_len(token_t tok);

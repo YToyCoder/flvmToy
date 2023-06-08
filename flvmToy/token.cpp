@@ -33,6 +33,10 @@ bool token_is_kind(token_t tok,TokenKind _kind) {
 	return *pkind == _kind;
 }
 
+TokenKind token_kind(token_t tok) {
+	return (TokenKind)*((char*)&tok);
+}
+
 uint32_t tok_foffset(token_t tok)
 {
 	uint8_t* byte_pointer = (uint8_t*)(&tok);
