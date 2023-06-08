@@ -1,5 +1,7 @@
 #include "flvm.hpp"
 #include "unicode/brkiter.h"
+#include "unicode/ustream.h"
+#include "parse.h"
 #include "token.h"
 #include "lex.h"
 #include <stdio.h>
@@ -10,13 +12,23 @@
 void do_test()
 {
 #ifdef TOK_TEST
-	tok_test1();
-	Lex lex("new.txt");
-	lex.init();
-	while (lex.has_token()) {
-		token_t t = lex.next_token();
-		printf(">> %s\n", token_to_str(t).c_str());
+	{
+		tok_test1();
+		Lex lex("new.txt");
+		lex.init();
+		while (lex.has_token()) {
+			token_t t = lex.next_token();
+			printf(">> %s\n", token_to_str(t).c_str());
+			std::cout << lex.token_string(t) << std::endl;
+		}
 	}
+
+	{
+		Parser parser("new.txt");
+		IRNode* node = parser.parse();
+		printf("parsing finish\n");
+	}
+
 #endif
 }
 

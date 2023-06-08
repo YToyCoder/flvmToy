@@ -8,14 +8,14 @@
 class Parser
 {
 public:
-	Parser(const std::string& filename):_m_lex(filename){}
+	Parser(const std::string& filename) :_m_lex(filename) { _m_lex.init(); }
 	Parser(): Parser("") {}
 	IRNode* parse();
 protected:
 	IRNode* parsing_num();
 	IRNode* parsing_id();
-	//IRNode* parsing_binary();
-	//IRNode* parsing_literal();
+	IRNode* parsing_literal();
+	IRNode* parsing_binary();
 
 	//				token				//
 	token_t token(); 

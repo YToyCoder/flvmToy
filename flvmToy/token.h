@@ -50,6 +50,19 @@ uint32_t tok_end(token_t tok);
 uint32_t tok_len(token_t tok);
 std::string token_to_str(token_t tok);
 
+inline bool token_is_operator(token_t tok)
+{
+	switch (token_kind(tok))
+	{
+	case TokAdd:
+	case TokDiv:
+	case TokMul:
+	case TokSub:
+		return true;
+	}
+	return false;
+}
+
 #ifdef TOK_TEST
 void tok_test1();
 #endif

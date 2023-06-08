@@ -21,6 +21,7 @@ public:
 	typedef UnicodeString UStr;
 public:
 	Lex(const std::string& rFilename);
+	~Lex();
 	bool init();
 
 	// check if have token to read

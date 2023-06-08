@@ -10,6 +10,11 @@ Lex::Lex(const std::string& rFilename)
 {
 }
 
+Lex::~Lex()
+{
+	u_fclose(mFileHandle);
+}
+
 bool Lex::init() {
 	mFileHandle = u_fopen(mFilename.c_str(), "r", NULL, NULL);
 	if (mFileHandle == NULL) return false;

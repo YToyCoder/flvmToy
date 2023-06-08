@@ -3,10 +3,27 @@
 #include "token.h"
 
 enum IRNodeTag {
-	IRTag_Id,
+	IRTag_Id = 1,
 	IRTag_Num,
 	IRTag_Add,
+	IRTag_Sub,
+	IRTag_Mul,
+	IRTag_Div,
 };
+
+#define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
+
+inline IRNodeTag token_kind_to_tag(TokenKind tk)
+{
+	switch (tk)
+	{
+		TOKEN_KIND_RET_TAG(Add);
+		TOKEN_KIND_RET_TAG(Sub);
+		TOKEN_KIND_RET_TAG(Mul);
+		TOKEN_KIND_RET_TAG(Div);
+	}
+	throw std::exception("token kind to tag error");
+}
 
 class IRNode
 {
