@@ -8,7 +8,9 @@
 
 enum TokenKind : uint8_t
 {
-	TokId  = 0,
+	// not valid token
+	TokNan = 0,
+	TokId,
 	TokInt,
 	TokFloat,
 	// operand 
@@ -21,8 +23,6 @@ enum TokenKind : uint8_t
 	// control
 	TokEol, // end of line => \n
 	TokEof, // end of file
-	// not valid token
-	TokNan,
 };
 
 enum TokendFlag : uint8_t
@@ -38,8 +38,8 @@ enum TokendFlag : uint8_t
 // | tok-kind |		offset |		file--offset				 |					 |
 typedef uint64_t token_t;
 
-#define InvalidTok (0x0100000000000000)
-#define TokIsValid(t) (t != InvalidTok)
+#define InvalidTok (0x0000000000000000)
+#define TokIsValid(t) (token_is_kind(t, TokNan))
 
 std::string tk_to_str(token_t tk);
 token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset);
