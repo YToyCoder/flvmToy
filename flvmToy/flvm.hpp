@@ -31,6 +31,16 @@ struct Instruction {
     aload    = 0x0A,
     ldci     = 0x11,
     ldcd     = 0x12,
+
+    // operator
+    iadd     = 0x21,
+    dadd     = 0x22,
+    isub     = 0x23,
+    dsub     = 0x24,
+    imul     = 0x25,
+    dmul     = 0x26,
+    idiv     = 0x27,
+    ddiv     = 0x28,
   };
 };
 
@@ -61,7 +71,7 @@ union FlValue {
 
 typedef union FlValue FlValue;
 
-class FlFrame;
+FlInt sign_extend(uint16_t v);
 // slot with tag which for debug
 class FlTagValue{
   FlValue _val;
@@ -69,7 +79,7 @@ class FlTagValue{
   FlTagValue(uint8_t tag){
     _tag = tag;
   }
-  friend FlFrame;
+  friend class FlFrame;
 
   public:
 
@@ -142,6 +152,63 @@ class FlString : FlObj{
     }
 };
 
+class FlMethod {
+  instr_t *codes;
+  size_t _max_stk;
+  size_t _max_locals;
+  size_t _code_len;
+  friend class FlFrame;
+  friend class FlMethodBuilder;
+  public:
+    size_t max_stk()    { return _max_stk; }
+    size_t max_locals() { return _max_locals; }
+};
+
+class FlFrame
+{
+public:
+
+    void pushobj(FlObjp v){ stkp->set(v); stkp++; }
+    void pushc(FlChar v)  { stkp->set(v); stkp++; }
+    void pushd(FlDouble v){ stkp->set(v); stkp++; }
+    void pushb(FlBool v)  { stkp->set(v); stkp++; }
+    void pushi(FlInt v)   { stkp->set(v); stkp++; }
+    void loadi(FlInt v, size_t loc) { locals[loc].set(v); }
+    void loadd(FlDouble v, size_t loc) { locals[loc].set(v); }
+
+    void iadd() { pushi(popi() + popi()); }
+    void dadd() { pushd(popd() + popd()); }
+    void isub() { pushi(popi() - popi()); }
+    void dsub() { pushd(popd() - popd()); }
+    void imul() { pushi(popi() * popi()); }
+    void dmul() { pushd(popd() * popd()); }
+    void idiv() { pushi(popi() / popi()); }
+    void ddiv() { pushd(popd() / popd()); }
+
+    FlInt popi() { stkp--; return stkp->_int(); }
+    FlBool popb(){ stkp--; return stkp->_bool();}
+    FlDouble popd() { return (--stkp)->_double(); }
+
+public:
+    void print_frame();
+    void init();
+    void setLast(FlFrame *frame){ this->last = frame; }
+    bool end_of_pc() { (current_exec->codes + current_exec->_code_len) <= pc; }
+
+private:  
+  inline void stkp_out_of_index_check();
+
+  FlFrame *last;
+  FlMethod *current_exec;
+  instr_t *pc;
+  FlTagValue *locals;
+  FlTagValue *stk_base;
+  FlTagValue *stk_top;
+  FlTagValue *stkp;
+  friend class FlExec;
+  friend class FlSExec;
+};
+
 // all global
 class FlConstPool {
   std::unordered_map<uint64_t, FlTagValue *> _hash_map;
@@ -152,6 +219,53 @@ class FlConstPool {
     }
 
     void put(FlString *key, FlTagValue *value){ _hash_map[key->hash()] = value; }
+};
+
+// a simple executor
+class FlSExec
+{
+
+protected:
+  inline instr_t read_instr(){ return *(_m_frame->pc++);}
+  inline void _iconst_1(){ _m_frame->pushi(1); }
+  inline void _iconst_2(){ _m_frame->pushi(2); }
+  inline void _iconst_3(){ _m_frame->pushi(3); }
+  inline void _iconst_4(){ _m_frame->pushi(4); }
+  inline void _iload() { _m_frame->loadi(_m_frame->popi(), read_instr());}
+  inline void _ipush()   { 
+    FlInt v = sign_extend(read_instr() << 8 | read_instr());
+    _m_frame->pushi(v);
+  }
+
+  void dispatch(instr_t instr);
+
+private:
+  FlFrame* _m_frame;
+};
+
+class FlMethodBuilder {
+public:
+  FlMethodBuilder();
+
+  FlMethodBuilder* append(instr_t instr);
+  FlMethodBuilder* set_max_stk(size_t stk_deep);
+  FlMethodBuilder* set_max_locals(size_t locals_size);
+  FlMethod* build();
+
+  void clear()
+  {
+    len = 0;
+    max_stk = -1;
+    max_locals = -1;
+  }
+private:
+	void capability_check();
+
+  instr_t *code_cache;
+  size_t capability;
+  size_t len;
+  size_t max_stk;
+  size_t max_locals;
 };
 
 class FlStringConstPool;

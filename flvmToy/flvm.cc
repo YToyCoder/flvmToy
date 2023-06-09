@@ -33,84 +33,61 @@ FlStringConstPool *FlVM::const_string_pool = nullptr;
 FlVM::State FlVM::_state = State::Uninit;
 
 // vm obj
+FlMethodBuilder::FlMethodBuilder()
+{
+	code_cache = nullptr;
+	capability = 16;
+	len = 0;
+	max_stk = -1;
+	max_locals = -1;
+	code_cache = (instr_t *) malloc(sizeof(instr_t) * capability);
+}
 
-// pre declaration
-class FlMethodBuilder;
+void FlMethodBuilder::capability_check()
+{
+	if(len == capability){
+		size_t extend = 1.5 * capability < INT32_MAX ? 1.5 * capability : INT32_MAX;
+		instr_t* new_area = (instr_t *) malloc(sizeof(instr_t) * extend);
+		for(int i=0; i<len; i++){
+			new_area[i] = code_cache[i];
+		}
+		free(code_cache);
+		code_cache = new_area;
+	}
+}
 
-class FlMethod {
-  instr_t *codes;
-  size_t _max_stk;
-  size_t _max_locals;
-  size_t _code_len;
-  friend FlFrame;
-  friend FlMethodBuilder;
-  public:
-    size_t max_stk()    { return _max_stk; }
-    size_t max_locals() { return _max_locals; }
-};
+FlMethodBuilder* FlMethodBuilder::set_max_stk(size_t stk_deep)
+{
+	max_stk = stk_deep;
+	return this;
+}
 
-class FlMethodBuilder {
-  instr_t *code_cache;
-  size_t capability;
-  size_t len;
-  size_t max_stk;
-  size_t max_locals;
-  void capability_check(){
-    if(len == capability){
-      size_t extend = 1.5 * capability < INT32_MAX ? 1.5 * capability : INT32_MAX;
-      instr_t* new_area = (instr_t *) malloc(sizeof(instr_t) * extend);
-      for(int i=0; i<len; i++){
-        new_area[i] = code_cache[i];
-      }
-      free(code_cache);
-      code_cache = new_area;
-    }
-  }
-public:
-  FlMethodBuilder(){
-    code_cache = nullptr;
-    capability = 16;
-    len = 0;
-    max_stk = -1;
-    max_locals = -1;
-    code_cache = (instr_t *) malloc(sizeof(instr_t) * capability);
-  }
+FlMethodBuilder* FlMethodBuilder::set_max_locals(size_t locals_size)
+{
+	max_locals = locals_size;
+	return this;
+}
 
-  void clear(){
-    len = 0;
-    max_stk = -1;
-    max_locals = -1;
-  }
+FlMethodBuilder* FlMethodBuilder::append(instr_t instr)
+{
+	capability_check();
+	code_cache[len++] = instr;
+	return this;
+}
 
-  FlMethodBuilder *append(instr_t instr){
-    capability_check();
-    code_cache[len++] = instr;
-    return this;
-  }
+FlMethod* FlMethodBuilder::build()
+{
+	FlMethod *ret = new FlMethod();
+	ret->codes = code_cache;
+	ret->_max_locals = max_locals;
+	ret->_max_stk = max_stk;
+	ret->_code_len = this->len;
+	clear();
+	return ret;
+}
 
-  FlMethodBuilder *set_max_stk(size_t stk_deep){
-    max_stk = stk_deep;
-    return this;
-  }
-
-  FlMethodBuilder *set_max_locals(size_t locals_size){
-    max_locals = locals_size;
-    return this;
-  }
-
-  FlMethod *build(){
-    FlMethod *ret = new FlMethod();
-    ret->codes = code_cache;
-    ret->_max_locals = max_locals;
-    ret->_max_stk = max_stk;
-    ret->_code_len = this->len;
-    clear();
-    return ret;
-  }
-
-};
-
-class FlStringConstPool {
+class FlStringConstPool 
+{
   std::unordered_map<uint64_t,FlString *> pool;
   public:
   FlString *ofFlstring(const char *chars, size_t len){
@@ -151,8 +128,6 @@ class FlFileLoader {
     }
 };
 
-class FlExec;
-
 inline std::string repeat(std::string str, size_t n){
   std::string ret;
   for(int i=0; i<n; i++)
@@ -164,104 +139,97 @@ inline std::string append_eq_util(std::string str, size_t n){
   return str + repeat(" ", n - str.size() - 1) + "=";
 }
 
-class FlFrame {
-  FlFrame *last;
-  FlMethod *current_exec;
-  instr_t *pc;
-  FlTagValue *locals;
-  FlTagValue *stk_base;
-  FlTagValue *stk_top;
-  FlTagValue *stkp;
-  friend FlExec;
+void FlFrame::init()
+{
+	// pc
+	pc = current_exec->codes;
+	// locals
+	const size_t max_locals = current_exec->max_locals();
+	locals = (FlTagValue *) malloc(sizeof(FlTagValue) * max_locals);
+	for(int i=0; i< max_locals; i++){
+		locals[i]._tag = FlTagValue::UnInit;
+	}
+	// stk
+	const size_t max_stk = current_exec->max_stk();
+	stk_base = (FlTagValue *) malloc(sizeof(FlTagValue) * max_stk);
+	stk_top = stk_base + max_stk;
+	stkp = stk_base;
+	for(FlTagValue *i=stk_base; i<stk_top; i++){
+		i->_tag = FlTagValue::UnInit;
+	}
+}
 
-  void stkp_out_of_index_check(){
-    if(stkp < stk_base || stkp >= stk_top){
-      FlVM::error("stack out of index>>\n");
-      exit(1);
-    }
-  }
+void FlFrame::stkp_out_of_index_check()
+{
+	if(stkp < stk_base || stkp >= stk_top){
+		FlVM::error("stack out of index>>\n");
+		exit(1);
+	}
+}
 
-  void init(){
-    // pc
-    pc = current_exec->codes;
-    // locals
-    const size_t max_locals = current_exec->max_locals();
-    locals = (FlTagValue *) malloc(sizeof(FlTagValue) * max_locals);
-    for(int i=0; i< max_locals; i++){
-      locals[i]._tag = FlTagValue::UnInit;
-    }
-    // stk
-    const size_t max_stk = current_exec->max_stk();
-    stk_base = (FlTagValue *) malloc(sizeof(FlTagValue) * max_stk);
-    stk_top = stk_base + max_stk;
-    stkp = stk_base;
-    for(FlTagValue *i=stk_base; i<stk_top; i++){
-      i->_tag = FlTagValue::UnInit;
-    }
-  }
+void FlFrame::print_frame()
+{
+		std::string head("==>>frame data<<");
+		std::string stks("= stk: ");
+		for(FlTagValue *i=stk_base; i<stk_top; i++){
+			std::string el = i < stkp ? "[" + i->toString() + "]" : i->toString();
+			stks += el + " ";
+		}
+		std::string slocals = "= locals: ";
+		for(int i=0; i<current_exec->max_locals(); i++){
+			slocals += locals[i].toString() + " ";
+		}
+		size_t max_line_len = max(max(stks.size(), slocals.size()), head.size()) + 1;
+		head += repeat("=", max_line_len - head.size());
+		stks = append_eq_util(stks, max_line_len);
+		slocals = append_eq_util(slocals, max_line_len);
+		printf("%s\n",head.c_str());
+		printf("%s\n",stks.c_str());
+		printf("%s\n",slocals.c_str());
+		printf("%s\n",repeat("=",max_line_len).c_str());
+}
 
-  bool end_of_pc(){
-    return (current_exec->codes + current_exec->_code_len) <= pc;
-  }
-
-  public:
-    FlFrame(FlFrame *_last, FlMethod *_method){
-      last = _last;
-      current_exec = _method;
-      init();
-    }
-
-    void pushobj(FlObjp v){ stkp->set(v); stkp++; }
-    void pushc(FlChar v)  { stkp->set(v); stkp++; }
-    void pushd(FlDouble v){ stkp->set(v); stkp++; }
-    void pushb(FlBool v)  { stkp->set(v); stkp++; }
-    void pushi(FlInt v)   { stkp->set(v); stkp++; }
-    void loadi(FlInt v, size_t location) { locals[location].set(v); }
-    void loadd(FlDouble v, size_t location) { locals[location].set(v); }
-
-    FlInt popi() {
-      stkp--;
-      return stkp->_int();
-    }
-
-    FlBool popb(){
-      stkp--;
-      return stkp->_bool();
-    }
-    FlDouble popd() { return (--stkp)->_double(); }
-
-    void setLast(FlFrame *frame){
-      this->last = frame;
-    }
-
-    void print_frame(){
-      // printf("=====\n");
-      std::string head("==>>frame data<<");
-      std::string stks("= stk: ");
-      for(FlTagValue *i=stk_base; i<stk_top; i++){
-        std::string el = i < stkp ? "[" + i->toString() + "]" : i->toString();
-        stks += el + " ";
-      }
-      std::string slocals = "= locals: ";
-      for(int i=0; i<current_exec->max_locals(); i++){
-        slocals += locals[i].toString() + " ";
-      }
-      size_t max_line_len = max(max(stks.size(), slocals.size()), head.size()) + 1;
-      head += repeat("=", max_line_len - head.size());
-      stks = append_eq_util(stks, max_line_len);
-      slocals = append_eq_util(slocals, max_line_len);
-      printf("%s\n",head.c_str());
-      printf("%s\n",stks.c_str());
-      printf("%s\n",slocals.c_str());
-      printf("%s\n",repeat("=",max_line_len).c_str());
-    }
-};
 
 FlInt sign_extend(uint16_t v){
   if((v >> 15) == 1){
     return  v | 0xFFFFFFFFFFFF0000;
   }
   return v;
+};
+
+void FlSExec::dispatch(instr_t instr)
+{
+	switch(instr){
+		case Instruction::iconst_1: _iconst_1(); break;
+		case Instruction::iconst_2: _iconst_2(); break;
+		case Instruction::iconst_3: _iconst_3(); break;
+		case Instruction::iconst_4: _iconst_4(); break;
+		case Instruction::dconst_1:
+			_m_frame->pushd(1.0);
+			break;
+		case Instruction::dconst_2:
+			_m_frame->pushd(2.0);
+			break;
+		case Instruction::ipush:    _ipush()   ; break;
+		case Instruction::iload:    _iload()   ; break;
+		case Instruction::dload:
+			_m_frame->loadd(_m_frame->popd(), read_instr());
+			break;
+
+		case Instruction::iadd: _m_frame->iadd(); break;
+		case Instruction::dadd: _m_frame->dadd(); break;
+		case Instruction::isub: _m_frame->isub(); break;
+		case Instruction::dsub: _m_frame->dsub(); break;
+		case Instruction::imul: _m_frame->imul(); break;
+		case Instruction::dmul: _m_frame->dmul(); break;
+		case Instruction::idiv: _m_frame->idiv(); break;
+		case Instruction::ddiv: _m_frame->ddiv(); break;
+		default:
+			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
+	};
+#ifdef FlvmDebug
+	current_frame->print_frame();
+#endif
 };
 
 class FlExec {
