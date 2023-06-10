@@ -39,7 +39,7 @@ enum TokendFlag : uint8_t
 typedef uint64_t token_t;
 
 #define InvalidTok (0x0000000000000000)
-#define TokIsValid(t) (token_is_kind(t, TokNan))
+#define TokIsValid(t) (!token_is_kind(t, TokNan))
 
 std::string tk_to_str(token_t tk);
 token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset);

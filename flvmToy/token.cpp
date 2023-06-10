@@ -18,9 +18,9 @@ std::string tk_to_str(token_t tok) {
 }
 
 token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset){
-	token_t tok = 0x0;
+	token_t tok = 0;
 	uint8_t* byte_pointer = (uint8_t*)(&tok);
-	*byte_pointer = _kind;
+	*byte_pointer =(uint8_t) _kind;
 	uint8_t* toffset= byte_pointer + 1;
 	*toffset= token_offset;
 	uint32_t* foffset = (uint32_t*)(byte_pointer + 2);
