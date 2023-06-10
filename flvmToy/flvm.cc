@@ -93,11 +93,20 @@ FlMethodBuilder* FlMethodBuilder::append(instr_t instr)
 	return this;
 }
 
-FlMethodBuilder* FlMethodBuilder::store_const_int(FlInt _i)
+uint8_t FlMethodBuilder::store_const_int(FlInt _i)
 {
   const_pool_size_check();
+  uint8_t const_loc = k_len;
   k_cache[k_len++]._int = _i;
-  return this;
+  return const_loc;
+}
+
+uint8_t FlMethodBuilder::store_const_double(FlDouble _d)
+{
+  const_pool_size_check();
+  uint8_t const_loc = k_len;
+  k_cache[k_len++]._double = _d;
+  return const_loc;
 }
 
 FlMethod* FlMethodBuilder::build()

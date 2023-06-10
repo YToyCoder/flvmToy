@@ -258,8 +258,9 @@ public:
   FlMethodBuilder();
   ~FlMethodBuilder();
 
+  uint8_t store_const_int(FlInt _i);
+  uint8_t store_const_double(FlDouble _d);
   FlMethodBuilder* append(instr_t instr);
-  FlMethodBuilder* store_const_int(FlInt _i);
   FlMethodBuilder* set_max_stk(size_t stk_deep);
   FlMethodBuilder* set_max_locals(size_t locals_size);
   FlMethod* build();
