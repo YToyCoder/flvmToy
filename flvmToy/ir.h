@@ -25,17 +25,23 @@ inline IRNodeTag token_kind_to_tag(TokenKind tk)
 	throw std::exception("token kind to tag error");
 }
 
+class IR_Id;
+class IR_Num;
+class IR_BinOp;
+
+class IRVisitor
+{
+public:
+	virtual IRNode* visit(IR_Id* _id) = 0;
+	virtual IRNode* visit(IR_Num* _num) = 0;
+	virtual IRNode* visit(IR_BinOp* _num) = 0;
+};
+
 class IRNode
 {
 public:
-	IRNode() :IRNode(0, 0) {}
-	IRNode(token_t _tok, uint32_t _s) 
-		: IRNode(_tok,_s, 0) {};
-	IRNode(token_t _tok, uint32_t _s, uint32_t _e) 
-		: _m_tok(_tok), _m_begin_pos(_s), _m_end_pos(_e) {};
-
 	virtual IRNodeTag tag() = 0;
-
+	virtual IRNode* accept(IRVisitor& visitor) = 0;
 public:
 	token_t		 token()			{ return _m_tok; }
 	uint32_t start_loc()	{ return _m_begin_pos; }
@@ -43,6 +49,14 @@ public:
 	void set_tok(token_t tok)				{ _m_tok = tok; }
 	void set_end_loc(uint32_t _e)		{ _m_end_pos = _e; }
 	void set_start_loc(uint32_t _s) { _m_begin_pos = _s; }
+
+protected:
+	IRNode() :IRNode(0, 0) {}
+	IRNode(token_t _tok, uint32_t _s) 
+		: IRNode(_tok,_s, 0) {};
+	IRNode(token_t _tok, uint32_t _s, uint32_t _e) 
+		: _m_tok(_tok), _m_begin_pos(_s), _m_end_pos(_e) {};
+
 protected:
 	uint32_t _m_begin_pos;
 	uint32_t _m_end_pos;
@@ -53,8 +67,12 @@ protected:
 public: \
 	virtual IRNodeTag tag() override {\
 		return Tag;\
+	} \
+		\
+	virtual IRNode* accept(IRVisitor& visitor) override {\
+		return visitor.visit(this);\
 	}
-	
+
 // id node
 class IR_Id: public IRNode
 {
@@ -64,6 +82,8 @@ public:
 		: IRNode(tok, _s) {}
 	IR_Id(token_t tok, uint32_t _s, uint32_t _e)
 		: IRNode(tok, _s, _e){}
+
+	virtual IRNode* accept(IRVisitor& visitor);
 private:
 };
 
