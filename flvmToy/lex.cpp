@@ -97,7 +97,7 @@ token_t Lex::fetch_token() {
 }
 
 void Lex::fill_buffer(){
-	mBufLimit = u_file_read(mbuf, BufSize, mFileHandle) - 1;
+	mBufLimit = u_file_read(mbuf, BufSize, mFileHandle);
 	mBufCursor = 0;
 }
 
@@ -138,10 +138,10 @@ token_t Lex::numeric_token() {
 		next_char(); // drop dot
 		proc_num(str);
 		m_str.insert(std::make_pair(token_start, str));
-		return create_token(TokInt, token_start, m_file_offset - token_start);
+		return create_token(TokFloat, token_start, m_file_offset - token_start);
 	}
 	m_str.insert(std::make_pair(token_start, str));
-	return create_token(TokFloat, token_start, m_file_offset - token_start);
+	return create_token(TokInt, token_start, m_file_offset - token_start);
 }
 
 token_t Lex::alphabetic_start_token() {
