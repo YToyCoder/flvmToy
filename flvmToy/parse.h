@@ -3,6 +3,8 @@
 #include "ir.h"
 #include "flvm.hpp"
 #include <list>
+#include <set>
+#include <map>
 
 #define Parser_Token_Cache_Limit 2
 
@@ -34,6 +36,33 @@ enum CodeGenType
 	CodeGen_D, // double
 };
 
+inline CodeGenType better_type(CodeGenType ta, CodeGenType tb)
+{
+	return max(ta, tb);
+}
+
+class TypeConvert : public IRVisitor
+{
+public:
+	IRNode* convert(IRNode* ir);
+private:
+	virtual IRNode* visit(IR_Num* num) override;
+	virtual IRNode* visit(IR_BinOp* bin) override;
+	virtual IRNode* visit(IR_Id* id) override
+	{
+		throw std::runtime_error("not support id code gen");
+	}
+	virtual IRNode* visit(IR_Cast* id) override { return id; }
+	inline void push_t(CodeGenType t) { t_stk.push_back(t); }
+	inline CodeGenType pop_t() {
+		auto t = t_stk.back();
+		t_stk.pop_back();
+		return t;
+	}
+
+	std::list<CodeGenType> t_stk;
+};
+
 class CodeGen: public IRVisitor
 {
 public:
@@ -49,7 +78,7 @@ private:
 	CodeGenType gen_bin(IR_BinOp* ir);
 
 // code append operation
-	inline CodeGen* add_instr(uint8_t instr) { _m_builder.append(instr); }
+	inline CodeGen* add_instr(uint8_t instr) { _m_builder.append(instr); return this; }
 	inline void add_int16_to_code(int16_t _i)
 	{
 		uint8_t* byte = (uint8_t*)(&_i);
@@ -63,7 +92,12 @@ private:
 		t_stk.pop_front();
 		return t;
 	}
-	inline void push_t(CodeGenType t) { t_stk.push_back(t); }
+	inline CodeGenType top_t() { return t_stk.front(); }
+	inline void push_t(CodeGenType t) 
+	{ 
+		t_stk.push_back(t); 
+		set_max_stk_size();
+	}
 
 	inline void set_max_stk_size()
 	{
@@ -73,7 +107,21 @@ private:
 		}
 	}
 
+	// 从本地变量表中申请一个新的本地变量表
+	inline uint8_t alloc_local(Lex::UStr name = "~temp~name")
+	{
+		if (!m_unused_local.empty())
+		{
+			uint8_t n_local = m_max_local++;
+		}
+	}
+
+	// type stack
 	std::list<CodeGenType> t_stk; // type stack
 	size_t max_stk_size;
+	// local info
+	uint8_t m_max_local; // init 0
+	std::set<uint8_t> m_unused_local;
+	std::map<Lex::UStr, uint8_t> m_local_name_map; // string map to local index
 	FlMethodBuilder _m_builder;
 };

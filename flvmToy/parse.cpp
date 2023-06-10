@@ -37,7 +37,9 @@ bool Parser::has_tok()
 
 IRNode* Parser::parse()
 {
-	return has_tok() ? parsing_binary() : nullptr ;
+	if (has_tok())
+		return parsing_binary();
+	return nullptr;
 }
 
 IRNode* Parser::parsing_num()
@@ -82,11 +84,12 @@ IRNode* Parser::parsing_binary()
 {
 	IRNode* lhs = parsing_literal();
 	token_t operator_tok;
-	while (has_tok() && token_is_operator(operator_tok = token()))
+	while (has_tok() && token_is_operator(token()))
 	{
-		next_tok();
+		operator_tok = next_tok();
 		if (!has_tok())
 		{
+			printf("doesn't has token when prccess right-hand side");
 			throw std::exception("parsing binary node exception[ has no right-hand side expression ]");
 		}
 		IRNode* rhs = parsing_literal();
@@ -97,6 +100,46 @@ IRNode* Parser::parsing_binary()
 			lhs, rhs);
 	}
 	return lhs;
+}
+IRNode* TypeConvert::convert(IRNode* ir)
+{
+	if (nullptr == ir) return ir;
+	return ir->accept(*this);
+}
+
+IRNode* TypeConvert::visit(IR_Num* num)
+{
+	if (num->is_float()) {
+		push_t(CodeGen_D);
+	}
+	if (num->is_int()) {
+		push_t(CodeGen_I);
+	}
+	return num;
+}
+
+IRNode* TypeConvert::visit(IR_BinOp* ir)
+{
+	CodeGenType lhs_t = pop_t();
+	CodeGenType rhs_t = pop_t();
+	if (lhs_t == rhs_t) {
+		push_t(lhs_t);
+		return ir;
+	}
+	else {
+		CodeGenType t = better_type(lhs_t, rhs_t);
+		push_t(t);
+		if (t == lhs_t) {
+			IRNode* irRHS = ir->rhs();
+			IRNode* rhs = new IR_Cast(irRHS->end_loc(), irRHS, NodeDouble);
+			return new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), ir->lhs(), rhs);
+		}
+		else {
+			IRNode* irLHS = ir->lhs();
+			IRNode* lhs = new IR_Cast(irLHS->end_loc(), irLHS, NodeDouble);
+			return new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), lhs, ir->rhs());
+		}
+	}
 }
 
 void CodeGen::build(IRNode* ir)
@@ -111,7 +154,6 @@ IRNode* CodeGen::visit(IR_Num* num)
 {
 	CodeGenType t = gen_num(num);
 	push_t(t);
-	set_max_stk_size();
 	return num;
 }
 
@@ -191,8 +233,8 @@ inline Instruction::Code tag_to_double_instr(IRNodeTag tag)
 }
 CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 {
-	CodeGenType lhs_t = pop_t();
 	CodeGenType rhs_t = pop_t();
+	CodeGenType lhs_t = top_t();
 	if (lhs_t == rhs_t)
 	{
 		switch (lhs_t)
@@ -206,10 +248,15 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 			default:
 				throw std::exception("not support other type when codegen");
 		}
+		pop_t();
 		return lhs_t;
 	}
 	else 
 	{
 		// TODO:?
+		CodeGenType btype = better_type(lhs_t, rhs_t);
+		if (btype == rhs_t)
+		{
+		}
 	}
 }
