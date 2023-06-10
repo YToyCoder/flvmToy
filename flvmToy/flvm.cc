@@ -200,6 +200,7 @@ FlInt sign_extend(uint16_t v){
 void FlSExec::dispatch(instr_t instr)
 {
 	switch(instr){
+		case Instruction::iconst_0: _iconst_0(); break;
 		case Instruction::iconst_1: _iconst_1(); break;
 		case Instruction::iconst_2: _iconst_2(); break;
 		case Instruction::iconst_3: _iconst_3(); break;
