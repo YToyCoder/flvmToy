@@ -248,6 +248,7 @@ void FlSExec::dispatch(instr_t instr)
 			_m_frame->pushd(2.0);
 			break;
 		case Instruction::ipush:    _ipush()   ; break;
+    case Instruction::dpush:    _dpush()   ; break;
 		case Instruction::iload:    _iload()   ; break;
 		case Instruction::dload:
 			_m_frame->loadd(_m_frame->popd(), read_instr());

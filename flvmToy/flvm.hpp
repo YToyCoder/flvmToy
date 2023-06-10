@@ -241,7 +241,8 @@ protected:
   inline void _iconst_3(){ _m_frame->pushi(3); }
   inline void _iconst_4(){ _m_frame->pushi(4); }
   inline void _iload() { _m_frame->loadi(_m_frame->popi(), read_instr());}
-  inline void _ipush()   { 
+  inline void _dpush() { _m_frame->pushd(read_instr()); }
+  inline void _ipush() { 
     FlInt v = sign_extend(read_instr() << 8 | read_instr());
     _m_frame->pushi(v);
   }
