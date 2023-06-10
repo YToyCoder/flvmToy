@@ -46,7 +46,7 @@ IRNode* Parser::parsing_num()
 {
 	token_t t = next_tok();
 	IR_Num* node = new IR_Num(t, tok_foffset(t), tok_end(t));
-	Lex::UStr str = _m_lex.token_string(t);
+	unistr_t str = _m_lex.token_string(t);
 	std::string u8s;
 	str.toUTF8String(u8s);
 	switch (token_kind(t)) {
@@ -101,6 +101,7 @@ IRNode* Parser::parsing_binary()
 	}
 	return lhs;
 }
+
 IRNode* TypeConvert::convert(IRNode* ir)
 {
 	if (nullptr == ir) return ir;

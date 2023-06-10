@@ -123,8 +123,8 @@ void Lex::try_ensure_buf() {
 }
 token_t Lex::numeric_token() {
 	uint32_t token_start = m_file_offset;
-	UStr str;
-	auto proc_num = [this](UStr& str) {
+	unistr_t str;
+	auto proc_num = [this](unistr_t& str) {
 		UChar32 cp;
 		UChar uc;
 		do {
@@ -146,7 +146,7 @@ token_t Lex::numeric_token() {
 
 token_t Lex::alphabetic_start_token() {
 	uint32_t token_start = m_file_offset;
-	UStr str;
+	unistr_t str;
 	UChar32 cp;
 	UChar uc;
 	auto char_is_id_iner = [this](UChar32 cp, UChar uc) -> bool {
@@ -164,7 +164,7 @@ token_t Lex::alphabetic_start_token() {
 	return create_token(TokId, token_start, m_file_offset - token_start);
 }
 
-Lex::UStr Lex::token_string(token_t tok)
+unistr_t Lex::token_string(token_t tok)
 {
 	return m_str[tok_foffset(tok)];
 }

@@ -108,7 +108,7 @@ private:
 	}
 
 	// 从本地变量表中申请一个新的本地变量表
-	inline uint8_t alloc_local(Lex::UStr name = "~temp~name")
+	inline uint8_t alloc_local(unistr_t name = "~temp~name")
 	{
 		if (!m_unused_local.empty())
 		{
@@ -122,6 +122,6 @@ private:
 	// local info
 	uint8_t m_max_local; // init 0
 	std::set<uint8_t> m_unused_local;
-	std::map<Lex::UStr, uint8_t> m_local_name_map; // string map to local index
+	std::map<unistr_t, uint8_t> m_local_name_map; // string map to local index
 	FlMethodBuilder _m_builder;
 };

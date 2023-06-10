@@ -13,12 +13,8 @@
 
 #define BufSize 1024
 
-U_NAMESPACE_USE;
-
 class Lex 
 {
-public:
-	typedef UnicodeString UStr;
 public:
 	Lex(const std::string& rFilename);
 	~Lex();
@@ -33,7 +29,7 @@ public:
 	// get current token
 	token_t peek_token();
 	// get the string value of token
-	UStr token_string(token_t tok);
+	unistr_t token_string(token_t tok);
 protected:
 #define LexBufCapability 100
 	enum LexState {
@@ -91,5 +87,5 @@ private:
 	uint16_t mBufCursor;
 	token_t mtok;
 	
-	std::map<uint32_t, UStr> m_str;
+	std::map<uint32_t, unistr_t> m_str;
 };
