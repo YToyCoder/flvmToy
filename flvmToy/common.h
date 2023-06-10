@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <string>
+#include "unicode/unistr.h"
 
 struct position_t {
 	uint16_t mX;
@@ -13,4 +14,4 @@ struct position_t {
 	position_t& next_col()  { mX++;					return *this; }
 };
 
-
+typedef U_ICU_NAMESPACE::UnicodeString unistr_t;
