@@ -103,10 +103,21 @@ FlMethodBuilder* FlMethodBuilder::store_const_int(FlInt _i)
 FlMethod* FlMethodBuilder::build()
 {
 	FlMethod *ret = new FlMethod();
-	ret->codes = code_cache;
+	ret->codes = new instr_t[len];
+  for (int i = 0; i < len; i++) {
+    ret->codes[i] = code_cache[i];
+  }
 	ret->_max_locals = max_locals;
 	ret->_max_stk = max_stk;
 	ret->_code_len = this->len;
+
+  // consts
+  ret->k = new FlValue[k_len];
+  for (int i = 0; i < k_len; i++)
+  {
+    ret->k[i] = k_cache[i];
+  }
+  ret->_k_len = k_len;
 	clear();
 	return ret;
 }
@@ -250,6 +261,8 @@ void FlSExec::dispatch(instr_t instr)
 		case Instruction::dmul: _m_frame->dmul(); break;
 		case Instruction::idiv: _m_frame->idiv(); break;
 		case Instruction::ddiv: _m_frame->ddiv(); break;
+    case Instruction::ldci: _m_frame->ldci(read_instr()); break;
+    case Instruction::ldcd: _m_frame->ldcd(read_instr()); break;
 		default:
 			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
 	};

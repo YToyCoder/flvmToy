@@ -27,11 +27,12 @@ struct Instruction {
     dconst_1 = 0x05,
     dconst_2 = 0x06,
     ipush    = 0x07,
-    iload    = 0x08,
-    dload    = 0x09,
-    aload    = 0x0A,
-    ldci     = 0x11,
-    ldcd     = 0x12,
+    dpush    = 0x08,
+    iload    = 0x09,
+    dload    = 0x0A,
+    aload    = 0x0B,
+    ldci     = 0x11, // load int from consts
+    ldcd     = 0x12, // load double from consts
 
     // operator
     iadd     = 0x21,
@@ -79,6 +80,7 @@ class FlTagValue{
   uint8_t _tag;
   FlTagValue(uint8_t tag){
     _tag = tag;
+    _val._int = 0;
   }
   friend class FlFrame;
 
@@ -159,6 +161,7 @@ class FlMethod {
   size_t _max_stk;
   size_t _max_locals;
   size_t _code_len;
+  size_t _k_len; // debug
   friend class FlFrame;
   friend class FlMethodBuilder;
   public:
@@ -190,6 +193,9 @@ public:
     FlInt popi() { stkp--; return stkp->_int(); }
     FlBool popb(){ stkp--; return stkp->_bool();}
     FlDouble popd() { return (--stkp)->_double(); }
+
+    void ldci(uint8_t k_loc) { pushi(current_exec->k[k_loc]._int);    }
+    void ldcd(uint8_t k_loc) { pushd(current_exec->k[k_loc]._double); }
 
 public:
     void print_frame();
