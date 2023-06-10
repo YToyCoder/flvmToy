@@ -26,6 +26,8 @@ void do_test()
 	{
 		Parser parser("new.txt");
 		IRNode* node = parser.parse();
+		TypeConvert tc;
+		auto n = tc.convert(node);
 		printf("parsing finish\n");
 	}
 
