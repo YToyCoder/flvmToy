@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "token.h"
+#include <memory>
 
 enum IRNodeTag {
 	IRTag_Id = 1,
@@ -9,9 +10,15 @@ enum IRNodeTag {
 	IRTag_Sub,
 	IRTag_Mul,
 	IRTag_Div,
+	// 
+	IRTag_Cast,
 };
 
 #define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
+// node string type
+#define NodeInt "I"
+#define NodeDouble "D"
+#define NodeBool "B"
 
 inline IRNodeTag token_kind_to_tag(TokenKind tk)
 {
@@ -29,20 +36,25 @@ class IRNode;
 class IR_Id;
 class IR_Num;
 class IR_BinOp;
+class IR_Cast;
+
+template <typename _Ty>
+using sptr_t = std::shared_ptr<_Ty> ;
 
 class IRVisitor
 {
 public:
 	virtual IRNode* visit(IR_Id* _id) = 0;
 	virtual IRNode* visit(IR_Num* _num) = 0;
-	virtual IRNode* visit(IR_BinOp* _num) = 0;
+	virtual IRNode* visit(IR_BinOp* _bin) = 0;
+	virtual IRNode* visit(IR_Cast* _cast) = 0;
 };
 
 class IRNode
 {
 public:
-	virtual IRNodeTag tag() = 0;
-	virtual IRNode* accept(IRVisitor& visitor) = 0;
+	virtual IRNodeTag tag() { throw std::exception("user shuold implement this fn"); };
+	virtual IRNode* accept(IRVisitor& visitor) { throw std::exception("user shuold implement this fn"); };
 public:
 	token_t		 token()			{ return _m_tok; }
 	uint32_t start_loc()	{ return _m_begin_pos; }
@@ -64,15 +76,19 @@ protected:
 	token_t		 _m_tok;
 };
 
-#define IRNode_Impl(Tag) \
+#define IRNode_Visitor_Impl() \
 public: \
-	virtual IRNodeTag tag() override {\
-		return Tag;\
-	} \
-		\
 	virtual IRNode* accept(IRVisitor& visitor) override {\
 		return visitor.visit(this);\
 	}
+#define IRNode_Tag_Impl(Tag) \
+public: \
+	virtual IRNodeTag tag() override {\
+		return Tag;\
+	} 
+#define IRNode_Impl(Tag) \
+	IRNode_Tag_Impl(Tag) \
+	IRNode_Visitor_Impl()
 
 // id node
 class IR_Id: public IRNode
@@ -83,8 +99,6 @@ public:
 		: IRNode(tok, _s) {}
 	IR_Id(token_t tok, uint32_t _s, uint32_t _e)
 		: IRNode(tok, _s, _e){}
-
-private:
 };
 
 // number node
@@ -107,24 +121,49 @@ private:
 	} _m_num;
 };
 
+class IR_Cast : public IRNode
+{
+	IRNode_Tag_Impl(IRTag_Cast)
+public:
+	IR_Cast(token_t tok, uint32_t _e, IRNode* _sc, const unistr_t& _cst)
+		: IRNode(tok, _e), _m_s(_sc), m_cast_target(_cst) {}
+	IR_Cast(uint32_t _e, IRNode* _sc, const unistr_t& _cst)
+		: IR_Cast(0, _e, _sc, _cst) {}
+	const unistr_t& cast_to() { return m_cast_target; }
+	virtual IRNode* accept(IRVisitor& visitor) override
+	{
+		return visitor.visit(set_s(_m_s->accept(visitor)));
+	}
+protected:
+	inline IR_Cast* set_s(IRNode* _s) {
+		if (_s == _m_s.get()) return this;
+		auto self = new IR_Cast(*this);
+		self->_m_s = std::shared_ptr<IRNode>(_s);
+		return self;
+	}
+private:
+	sptr_t<IRNode> _m_s; // source node
+	unistr_t m_cast_target;
+};
+
 // binary node
 class IR_BinOp: public IRNode
 {
 public:
-	IR_BinOp(token_t tok, uint32_t _s, IRNodeTag _tag, IRNode* lhs, IRNode* rhs)
-		: IRNode(tok, _s), _m_tag(_tag), _m_lhs(lhs), _m_rhs(rhs) {}
-	IR_BinOp(token_t tok, uint32_t _s, IRNodeTag _tag)
-		: IR_BinOp(tok, _s, _tag, nullptr, nullptr) {}
+	IR_BinOp(token_t tok, uint32_t _e, IRNodeTag _tag, IRNode* lhs, IRNode* rhs)
+		: IRNode(tok, _e), _m_tag(_tag), _m_lhs(lhs), _m_rhs(rhs) {}
+	IR_BinOp(token_t tok, uint32_t _e, IRNodeTag _tag)
+		: IR_BinOp(tok, _e, _tag, nullptr, nullptr) {}
 	virtual IRNodeTag tag() override { return _m_tag; }
-	IRNode* lhs() const { return _m_lhs; }
-	IRNode* rhs() const { return _m_rhs; }
+	IRNode* lhs() const { return _m_lhs.get(); }
+	IRNode* rhs() const { return _m_rhs.get(); }
 	virtual IRNode* accept(IRVisitor& visitor) override;
 protected:
 	IR_BinOp* set_lhs(IRNode* _lhs);
 	IR_BinOp* set_rhs(IRNode* _rhs);
 private:
-	IRNode* _m_lhs;
-	IRNode* _m_rhs;
+	sptr_t<IRNode> _m_lhs;
+	sptr_t<IRNode> _m_rhs;
 	IRNodeTag _m_tag;
 };
 
