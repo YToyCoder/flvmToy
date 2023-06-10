@@ -35,23 +35,41 @@ FlVM::State FlVM::_state = State::Uninit;
 // vm obj
 FlMethodBuilder::FlMethodBuilder()
 {
-	code_cache = nullptr;
 	capability = 16;
 	len = 0;
 	max_stk = -1;
 	max_locals = -1;
-	code_cache = (instr_t *) malloc(sizeof(instr_t) * capability);
+  code_cache = new instr_t[capability] ;// (instr_t*)malloc(sizeof(instr_t) * capability);
+// const pool
+  k_cap = 8;
+  k_len = 0;
+  k_cache = new FlValue[k_cap];
+}
+FlMethodBuilder::~FlMethodBuilder()
+{
+  if (nullptr != code_cache)
+  {
+    delete[] code_cache;
+  }
+  if (nullptr != k_cache)
+  {
+    delete[] k_cache;
+  }
 }
 
 void FlMethodBuilder::capability_check()
 {
 	if(len == capability){
 		size_t extend = 1.5 * capability < INT32_MAX ? 1.5 * capability : INT32_MAX;
-		instr_t* new_area = (instr_t *) malloc(sizeof(instr_t) * extend);
-		for(int i=0; i<len; i++){
+    instr_t* new_area =new instr_t[extend] ; 
+    if (new_area == NULL)
+    {
+      throw std::runtime_error("alloc memory failed when build method");
+    }
+		for(int i=0; i<len && i<extend; i++){
 			new_area[i] = code_cache[i];
 		}
-		free(code_cache);
+    delete[] code_cache;
 		code_cache = new_area;
 	}
 }
@@ -73,6 +91,13 @@ FlMethodBuilder* FlMethodBuilder::append(instr_t instr)
 	capability_check();
 	code_cache[len++] = instr;
 	return this;
+}
+
+FlMethodBuilder* FlMethodBuilder::store_const_int(FlInt _i)
+{
+  const_pool_size_check();
+  k_cache[k_len++]._int = _i;
+  return this;
 }
 
 FlMethod* FlMethodBuilder::build()

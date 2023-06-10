@@ -154,7 +154,8 @@ class FlString : FlObj{
 };
 
 class FlMethod {
-  instr_t *codes;
+  instr_t* codes;
+  FlValue* k;   // const value in method
   size_t _max_stk;
   size_t _max_locals;
   size_t _code_len;
@@ -248,8 +249,10 @@ private:
 class FlMethodBuilder {
 public:
   FlMethodBuilder();
+  ~FlMethodBuilder();
 
   FlMethodBuilder* append(instr_t instr);
+  FlMethodBuilder* store_const_int(FlInt _i);
   FlMethodBuilder* set_max_stk(size_t stk_deep);
   FlMethodBuilder* set_max_locals(size_t locals_size);
   FlMethod* build();
@@ -262,12 +265,29 @@ public:
   }
 private:
 	void capability_check();
+  inline void const_pool_size_check()
+  {
+    if (k_len == k_cap)
+    {
+      size_t n_len = 1.5 * k_cap;
+      FlValue* n_area = new FlValue[n_len];
+      for (int i = 0; i < k_len && i < n_len; i++)
+      {
+        n_area[i] = k_cache[i];
+      }
+      delete[] k_cache;
+    }
+  }
 
   instr_t *code_cache;
   size_t capability;
   size_t len;
   size_t max_stk;
   size_t max_locals;
+
+  FlValue* k_cache;
+  size_t    k_cap;
+  size_t    k_len;
 };
 
 class FlStringConstPool;
