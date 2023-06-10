@@ -43,6 +43,10 @@ struct Instruction {
     dmul     = 0x26,
     idiv     = 0x27,
     ddiv     = 0x28,
+
+    // cast
+    i2d      = 0x30, // int to double
+    i2b      = 0x31, // int to boolean
   };
 };
 
