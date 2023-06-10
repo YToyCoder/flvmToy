@@ -92,9 +92,124 @@ IRNode* Parser::parsing_binary()
 		IRNode* rhs = parsing_literal();
 		lhs = new IR_BinOp(
 			operator_tok, 
-			lhs->start_loc(), 
+			tok_end(operator_tok),
 			token_kind_to_tag(token_kind(operator_tok)),
 			lhs, rhs);
 	}
 	return lhs;
+}
+
+void CodeGen::build(IRNode* ir)
+{
+	if (ir == nullptr) {
+		printf("codegen error, ir is nullptr");
+		return;
+	}
+}
+
+IRNode* CodeGen::visit(IR_Num* num)
+{
+	CodeGenType t = gen_num(num);
+	push_t(t);
+	set_max_stk_size();
+	return num;
+}
+
+CodeGenType CodeGen::gen_num(IR_Num * ir) // -> CodeGenType
+{
+	IR_Num* num = ir;
+#define InstrIConst(num) Instruction::iconst_ ## num
+#define InstrDConst(num) Instruction::dconst_ ## num
+	if (num->is_int())
+	{
+		FlInt iv = num->get_int();
+		switch (iv)
+		{
+		case 0: add_instr(InstrIConst(0)); break;
+		case 1: add_instr(InstrIConst(1)); break;
+		case 2: add_instr(InstrIConst(2)); break;
+		case 3: add_instr(InstrIConst(3)); break;
+		case 4: add_instr(InstrIConst(4)); break;
+		default:
+			if (-32768 <= iv && iv <= 32767) {
+				add_instr(Instruction::ipush);
+				add_int16_to_code(iv);
+			}
+			else {
+				uint8_t loc = _m_builder.store_const_int(iv);
+				add_instr(Instruction::ldci);
+				add_instr(loc);
+			}
+		}
+		return CodeGen_I;
+	}
+	else if (num->is_float())
+	{
+		FlDouble dv = num->get_db();
+		if (dv == 1.0 || dv == 2.0) {
+			auto instr = dv == 1.0 ? InstrDConst(1) : InstrDConst(2);
+			add_instr(instr);
+		}
+		else {
+			uint8_t loc = _m_builder.store_const_double(dv);
+			add_instr(Instruction::ldcd);
+			add_instr(loc);
+		}
+		return CodeGen_D;
+	}
+	throw std::runtime_error("not support literal when gen code");
+};
+
+IRNode* CodeGen::visit(IR_BinOp* ir)
+{
+	// TODO:?
+	return nullptr;
+}
+
+inline Instruction::Code tag_to_int_instr(IRNodeTag tag)
+{
+	switch (tag)
+	{
+		case IRTag_Add: return Instruction::iadd;
+		case IRTag_Sub: return Instruction::isub;
+		case IRTag_Mul: return Instruction::imul;
+		case IRTag_Div: return Instruction::idiv;
+	}
+	throw std::exception("not support tag convert to instruction");
+}
+
+inline Instruction::Code tag_to_double_instr(IRNodeTag tag)
+{
+	switch (tag)
+	{
+		case IRTag_Add: return Instruction::dadd;
+		case IRTag_Sub: return Instruction::dsub;
+		case IRTag_Mul: return Instruction::dmul;
+		case IRTag_Div: return Instruction::ddiv;
+	}
+	throw std::exception("not support tag convert to instruction");
+}
+CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
+{
+	CodeGenType lhs_t = pop_t();
+	CodeGenType rhs_t = pop_t();
+	if (lhs_t == rhs_t)
+	{
+		switch (lhs_t)
+		{
+			case CodeGen_I: 
+				add_instr(tag_to_int_instr(ir->lhs()->tag()));
+				break;
+			case CodeGen_D: 
+				add_instr(tag_to_double_instr(ir->lhs()->tag()));
+				break;
+			default:
+				throw std::exception("not support other type when codegen");
+		}
+		return lhs_t;
+	}
+	else 
+	{
+		// TODO:?
+	}
 }
