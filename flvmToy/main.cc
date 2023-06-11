@@ -31,6 +31,7 @@ void do_test()
 		TypeConvert tc;
 		auto n = tc.convert(node);
 		irs.clear();
+		std::cout << irs.to_string() << std::endl;
 		std::cout << irs.stringify(n) << std::endl;
 		printf("parsing finish\n");
 	}
