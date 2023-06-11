@@ -26,8 +26,12 @@ void do_test()
 	{
 		Parser parser("new.txt");
 		IRNode* node = parser.parse();
+		IR_String irs;
+		std::cout << irs.stringify(node) << std::endl;;
 		TypeConvert tc;
 		auto n = tc.convert(node);
+		irs.clear();
+		std::cout << irs.stringify(n) << std::endl;
 		printf("parsing finish\n");
 	}
 
