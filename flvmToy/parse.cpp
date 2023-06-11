@@ -121,8 +121,8 @@ IRNode* TypeConvert::visit(IR_Num* num)
 
 IRNode* TypeConvert::visit(IR_BinOp* ir)
 {
-	CodeGenType lhs_t = pop_t();
 	CodeGenType rhs_t = pop_t();
+	CodeGenType lhs_t = pop_t();
 	if (lhs_t == rhs_t) {
 		push_t(lhs_t);
 		return ir;
