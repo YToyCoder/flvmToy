@@ -47,6 +47,7 @@ struct Instruction {
     // cast
     i2d      = 0x30, // int to double
     i2b      = 0x31, // int to boolean
+    d2i      = 0x32, // double to int
   };
 };
 

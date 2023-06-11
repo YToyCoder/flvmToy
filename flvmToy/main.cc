@@ -33,6 +33,9 @@ void do_test()
 		irs.clear();
 		std::cout << irs.to_string() << std::endl;
 		std::cout << irs.stringify(n) << std::endl;
+		CodeGen cg;
+		cg.build(n);
+		auto method = cg.get_method();
 		printf("parsing finish\n");
 	}
 

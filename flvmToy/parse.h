@@ -68,17 +68,19 @@ private:
 	std::list<CodeGenType> t_stk;
 };
 
-class CodeGen: public IRVisitor
+class CodeGen: protected IRVisitor
 {
 public:
 	void build(IRNode* ir);
+	sptr_t<FlMethod> get_method();
 private:
+	virtual IRNode* visit(IR_BinOp* bin) override;
 	virtual IRNode* visit(IR_Num* num) override;
+	virtual IRNode* visit(IR_Cast* cast) override;
 	virtual IRNode* visit(IR_Id* id) override
 	{
 		throw std::runtime_error("not support id code gen");
 	}
-	virtual IRNode* visit(IR_BinOp* bin) override;
 	CodeGenType gen_num(IR_Num* ir);
 	CodeGenType gen_bin(IR_BinOp* ir);
 

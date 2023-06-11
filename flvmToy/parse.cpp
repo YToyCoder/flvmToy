@@ -198,6 +198,7 @@ void CodeGen::build(IRNode* ir)
 		printf("codegen error, ir is nullptr");
 		return;
 	}
+	ir->accept(*this);
 }
 
 IRNode* CodeGen::visit(IR_Num* num)
@@ -205,6 +206,39 @@ IRNode* CodeGen::visit(IR_Num* num)
 	CodeGenType t = gen_num(num);
 	push_t(t);
 	return num;
+}
+
+IRNode* CodeGen::visit(IR_Cast* cast)
+{
+	CodeGenType from_t = pop_t();
+	switch (from_t) 
+	{
+	case CodeGen_D:
+		if (cast->cast_to() == NodeDouble) {
+			push_t(from_t);
+		}
+		else if (cast->cast_to() == NodeInt) {
+			push_t(CodeGen_I);
+			add_instr(Instruction::d2i);
+		}
+		else {
+			throw std::exception("not support cast");
+		}
+		break;
+	case CodeGen_I:
+		if (cast->cast_to() == NodeDouble) {
+			push_t(CodeGen_D);
+			add_instr(Instruction::i2d);
+		}
+		else if (cast->cast_to() == NodeInt) {
+			push_t(CodeGen_I);
+		}
+		else {
+			throw std::exception("not support cast");
+		}
+		break;
+	}
+	return cast;
 }
 
 CodeGenType CodeGen::gen_num(IR_Num * ir) // -> CodeGenType
@@ -254,8 +288,8 @@ CodeGenType CodeGen::gen_num(IR_Num * ir) // -> CodeGenType
 
 IRNode* CodeGen::visit(IR_BinOp* ir)
 {
-	// TODO:?
-	return nullptr;
+	push_t(gen_bin(ir));
+	return ir;
 }
 
 inline Instruction::Code tag_to_int_instr(IRNodeTag tag)
@@ -281,6 +315,7 @@ inline Instruction::Code tag_to_double_instr(IRNodeTag tag)
 	}
 	throw std::exception("not support tag convert to instruction");
 }
+
 CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 {
 	CodeGenType rhs_t = pop_t();
@@ -290,10 +325,10 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 		switch (lhs_t)
 		{
 			case CodeGen_I: 
-				add_instr(tag_to_int_instr(ir->lhs()->tag()));
+				add_instr(tag_to_int_instr(ir->tag()));
 				break;
 			case CodeGen_D: 
-				add_instr(tag_to_double_instr(ir->lhs()->tag()));
+				add_instr(tag_to_double_instr(ir->tag()));
 				break;
 			default:
 				throw std::exception("not support other type when codegen");
@@ -303,10 +338,12 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 	}
 	else 
 	{
-		// TODO:?
-		CodeGenType btype = better_type(lhs_t, rhs_t);
-		if (btype == rhs_t)
-		{
-		}
+		// shouldn't reach here 
+		printf("binary two side type is not equal\n");
 	}
+}
+
+sptr_t<FlMethod> CodeGen::get_method()
+{
+	return sptr_t<FlMethod>(_m_builder.build());
 }
