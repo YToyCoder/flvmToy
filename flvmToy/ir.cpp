@@ -1,5 +1,6 @@
 #include "ir.h"
 #include "unicode/ustream.h"
+#include <stdio.h>
 
 IRNode* IR_BinOp::accept(IRVisitor& visitor)
 {
@@ -8,9 +9,15 @@ IRNode* IR_BinOp::accept(IRVisitor& visitor)
 	{
 		self = set_lhs(_m_lhs->accept(visitor));
 	}
-	if (_m_rhs.get() != nullptr)
+	else {
+		printf("error, binary_operator node lhs is nullptr\n");
+	}
+	if (self->_m_rhs.get() != nullptr)
 	{
-		self = set_rhs(_m_rhs->accept(visitor));
+		self = self->set_rhs(self->_m_rhs->accept(visitor));
+	}
+	else {
+		printf("error, binary_operator node rhs is nullptr\n");
 	}
 	return nullptr != self ? visitor.visit(self) : visitor.visit(this);
 }
@@ -53,8 +60,8 @@ IRNode* IR_String::visit(IR_Num* exp)
 	if (exp != nullptr)
 	{
 		_m_ss 
-			<< (exp->is_float() ? "D:" + std::to_string(exp->get_db()) : "")
-			<< (exp->is_int() ? "I:" + std::to_string(exp->get_int()) : "");
+			<< (exp->is_float() ? "D(" + std::to_string(exp->get_db()) +")" : "")
+			<< (exp->is_int() ? "I(" + std::to_string(exp->get_int()) + ")" : "");
 	}
 	return exp;
 }
@@ -63,7 +70,7 @@ IRNode* IR_String::visit(IR_Cast* exp)
 {
 	if (nullptr != exp)
 	{
-		_m_ss << "<C| ";
+		_m_ss << "<C|";
 		exp->cast_from()->accept(*this);
 		_m_ss << ":" << exp->cast_to() << ">";
 	}
@@ -74,9 +81,11 @@ IRNode* IR_String::visit(IR_BinOp* exp)
 {
 	if (nullptr != exp)
 	{
+		_m_ss << "<";
 		exp->lhs()->accept(*this);
 		_m_ss << "[" << IRTag_to_string(exp->tag()) << "]";
 		exp->rhs()->accept(*this);
+		_m_ss << ">";
 	}
 	return exp;
 }
