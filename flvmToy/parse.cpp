@@ -1,5 +1,6 @@
 #include "parse.h"
 #include "lex.h"
+#include <functional>
 
 /* tokens */
 void Parser::try_fill_cache()
@@ -38,7 +39,7 @@ bool Parser::has_tok()
 IRNode* Parser::parse()
 {
 	if (has_tok())
-		return parsing_binary();
+		return parsing_add();
 	return nullptr;
 }
 
@@ -80,11 +81,14 @@ IRNode* Parser::parsing_literal()
 	printf("not support token kind for literal : %s\n", tk_to_str(tk).c_str());
 	throw std::exception("not support kind literal");
 }
-IRNode* Parser::parsing_binary()
+
+IRNode* Parser::binary_parsing_proccess(
+	std::function<bool(token_t)> fn_token_is_right_kind,
+	std::function<IRNode*()> fn_xhand_side_parsing)
 {
-	IRNode* lhs = parsing_literal();
+	IRNode* lhs = fn_xhand_side_parsing();
 	token_t operator_tok;
-	while (has_tok() && token_is_operator(token()))
+	while (has_tok() && fn_token_is_right_kind(token()))
 	{
 		operator_tok = next_tok();
 		if (!has_tok())
@@ -92,7 +96,7 @@ IRNode* Parser::parsing_binary()
 			printf("doesn't has token when prccess right-hand side");
 			throw std::exception("parsing binary node exception[ has no right-hand side expression ]");
 		}
-		IRNode* rhs = parsing_literal();
+		IRNode* rhs = fn_xhand_side_parsing();
 		lhs = new IR_BinOp(
 			operator_tok, 
 			tok_end(operator_tok),
@@ -100,6 +104,38 @@ IRNode* Parser::parsing_binary()
 			lhs, rhs);
 	}
 	return lhs;
+}
+
+bool token_is_mul(token_t t)
+{
+	switch (token_kind(t))
+	{
+	case TokDiv:
+	case TokMul:
+		return true;
+	}
+	return false;
+}
+
+IRNode* Parser::parsing_mul()
+{
+	return binary_parsing_proccess(&token_is_mul, [this]() { return parsing_literal(); });
+}
+
+bool token_is_add(token_t tok)
+{
+	switch (token_kind(tok))
+	{
+	case TokAdd:
+	case TokSub:
+		return true;
+	}
+	return false;
+}
+
+IRNode* Parser::parsing_add()
+{
+	return binary_parsing_proccess(&token_is_add, [this]() { return parsing_mul(); });
 }
 
 IRNode* TypeConvert::convert(IRNode* ir)
@@ -143,6 +179,19 @@ IRNode* TypeConvert::visit(IR_BinOp* ir)
 	}
 }
 
+IRNode* TypeConvert::visit(IR_Cast* id) 
+{ 
+	pop_t();
+	if (id->cast_to() == NodeInt)
+	{
+		push_t(CodeGen_I);
+	}
+	if (id->cast_to() == NodeDouble)
+	{
+		push_t(CodeGen_D);
+	}
+	return id; 
+}
 void CodeGen::build(IRNode* ir)
 {
 	if (ir == nullptr) {

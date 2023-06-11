@@ -5,6 +5,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <functional>
 
 #define Parser_Token_Cache_Limit 2
 
@@ -18,7 +19,11 @@ protected:
 	IRNode* parsing_num();
 	IRNode* parsing_id();
 	IRNode* parsing_literal();
-	IRNode* parsing_binary();
+	IRNode* parsing_mul();
+	IRNode* parsing_add();
+	IRNode* binary_parsing_proccess(
+		std::function<bool(token_t)> fn_token_is_right_kind,
+		std::function<IRNode*()> fn_xhand_side_parsing);
 
 	//				token				//
 	token_t token(); 
@@ -52,7 +57,7 @@ private:
 	{
 		throw std::runtime_error("not support id code gen");
 	}
-	virtual IRNode* visit(IR_Cast* id) override { return id; }
+	virtual IRNode* visit(IR_Cast* id) override;// { return id; }
 	inline void push_t(CodeGenType t) { t_stk.push_back(t); }
 	inline CodeGenType pop_t() {
 		auto t = t_stk.back();
