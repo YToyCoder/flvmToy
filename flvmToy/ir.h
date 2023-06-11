@@ -2,6 +2,7 @@
 #include "common.h"
 #include "token.h"
 #include <memory>
+#include <sstream>
 
 enum IRNodeTag {
 	IRTag_Id = 1,
@@ -19,6 +20,22 @@ enum IRNodeTag {
 #define NodeInt "I"
 #define NodeDouble "D"
 #define NodeBool "B"
+#define TagToStringCase(tag, str) \
+	case IRTag_##tag : return str
+
+inline std::string IRTag_to_string(IRNodeTag _tag)
+{
+	switch (_tag)
+	{
+		TagToStringCase(Id, "ID");
+		TagToStringCase(Num, "Num");
+		TagToStringCase(Add, "+");
+		TagToStringCase(Sub, "-");
+		TagToStringCase(Mul, "*");
+		TagToStringCase(Div, "/");
+	}
+	throw std::exception("tag to string error");
+}
 
 inline IRNodeTag token_kind_to_tag(TokenKind tk)
 {
@@ -50,11 +67,27 @@ public:
 	virtual IRNode* visit(IR_Cast* _cast) = 0;
 };
 
+class Visitor
+{
+public:
+	virtual IRNode* visit(IR_Id* _id) = 0;
+	virtual IRNode* visit(IR_Num* _num) = 0;
+	virtual IRNode* visit(IR_BinOp* _bin) = 0;
+	virtual IRNode* visit(IR_Cast* _cast) = 0;
+};
+
+#define IR_Visitor_Impl_Decl() \
+	virtual IRNode* visit(IR_Id* _id)  override; \
+	virtual IRNode* visit(IR_Num* _num) override ; \
+	virtual IRNode* visit(IR_BinOp* _bin) override ; \
+	virtual IRNode* visit(IR_Cast* _cast) override ;
+
 class IRNode
 {
 public:
 	virtual IRNodeTag tag() { throw std::exception("user shuold implement this fn"); };
 	virtual IRNode* accept(IRVisitor& visitor) { throw std::exception("user shuold implement this fn"); };
+	virtual IRNode* accept(Visitor& visitor) { throw std::exception("user shuold implement this fn"); };
 public:
 	token_t		 token()			{ return _m_tok; }
 	uint32_t start_loc()	{ return _m_begin_pos; }
@@ -76,6 +109,13 @@ protected:
 	token_t		 _m_tok;
 };
 
+#define IR_Node_Accept_Visitor_Impl() \
+public: \
+	virtual IRNode* accept(Visitor& visitor) override  \
+	{ \
+		return visitor.visit(this); \
+	} 
+
 #define IRNode_Visitor_Impl() \
 public: \
 	virtual IRNode* accept(IRVisitor& visitor) override {\
@@ -94,6 +134,7 @@ public: \
 class IR_Id: public IRNode
 {
 	IRNode_Impl(IRTag_Id)
+	IR_Node_Accept_Visitor_Impl()
 public:
 	IR_Id(token_t tok, uint32_t _s)
 		: IRNode(tok, _s) {}
@@ -106,6 +147,7 @@ class IR_Num : public IRNode
 {
 		friend class Parser;
 	IRNode_Impl(IRTag_Num)
+	IR_Node_Accept_Visitor_Impl()
 public:
 	IR_Num(token_t tok, uint32_t _s): IRNode(tok, _s), _m_num(){}
 	IR_Num(token_t tok, uint32_t _s, uint32_t _e)
@@ -124,12 +166,14 @@ private:
 class IR_Cast : public IRNode
 {
 	IRNode_Tag_Impl(IRTag_Cast)
+	IR_Node_Accept_Visitor_Impl()
 public:
 	IR_Cast(token_t tok, uint32_t _e, IRNode* _sc, const unistr_t& _cst)
 		: IRNode(tok, _e), _m_s(_sc), m_cast_target(_cst) {}
 	IR_Cast(uint32_t _e, IRNode* _sc, const unistr_t& _cst)
 		: IR_Cast(0, _e, _sc, _cst) {}
 	const unistr_t& cast_to() { return m_cast_target; }
+	IRNode* cast_from() { return _m_s.get(); }
 	virtual IRNode* accept(IRVisitor& visitor) override
 	{
 		return visitor.visit(set_s(_m_s->accept(visitor)));
@@ -149,6 +193,7 @@ private:
 // binary node
 class IR_BinOp: public IRNode
 {
+	IR_Node_Accept_Visitor_Impl()
 public:
 	IR_BinOp(token_t tok, uint32_t _e, IRNodeTag _tag, IRNode* lhs, IRNode* rhs)
 		: IRNode(tok, _e), _m_tag(_tag), _m_lhs(lhs), _m_rhs(rhs) {}
@@ -167,3 +212,13 @@ private:
 	IRNodeTag _m_tag;
 };
 
+class IR_String: protected Visitor
+{
+public:
+	std::string stringify(IRNode* ir);
+	void clear() { _m_ss.clear(); }
+private:
+	IR_Visitor_Impl_Decl()
+private:
+	std::stringstream _m_ss;
+};

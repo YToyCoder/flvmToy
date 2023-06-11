@@ -1,4 +1,5 @@
 #include "ir.h"
+#include "unicode/ustream.h"
 
 IRNode* IR_BinOp::accept(IRVisitor& visitor)
 {
@@ -30,4 +31,52 @@ IR_BinOp* IR_BinOp::set_rhs(IRNode* _rhs)
 	auto self = new IR_BinOp(*this);
 	self->_m_rhs = std::shared_ptr<IRNode>(_rhs);
 	return self;
+}
+
+std::string IR_String::stringify(IRNode* ir)
+{
+	ir->accept(*this);
+	return _m_ss.str();
+}
+
+IRNode* IR_String::visit(IR_Id* exp)
+{
+	if (exp != nullptr)
+	{
+		_m_ss << "[Id]";
+	}
+	return exp;
+}
+
+IRNode* IR_String::visit(IR_Num* exp)
+{
+	if (exp != nullptr)
+	{
+		_m_ss 
+			<< (exp->is_float() ? "D:" + std::to_string(exp->get_db()) : "")
+			<< (exp->is_int() ? "I:" + std::to_string(exp->get_int()) : "");
+	}
+	return exp;
+}
+
+IRNode* IR_String::visit(IR_Cast* exp)
+{
+	if (nullptr != exp)
+	{
+		_m_ss << "<C| ";
+		exp->cast_from()->accept(*this);
+		_m_ss << ":" << exp->cast_to() << ">";
+	}
+	return exp;
+}
+
+IRNode* IR_String::visit(IR_BinOp* exp)
+{
+	if (nullptr != exp)
+	{
+		exp->lhs()->accept(*this);
+		_m_ss << "[" << IRTag_to_string(exp->tag()) << "]";
+		exp->rhs()->accept(*this);
+	}
+	return exp;
 }
