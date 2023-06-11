@@ -36,6 +36,8 @@ void do_test()
 		CodeGen cg;
 		cg.build(n);
 		auto method = cg.get_method();
+		FlSExec exec;
+		exec.exec(method.get());
 		printf("parsing finish\n");
 	}
 

@@ -37,13 +37,13 @@ FlMethodBuilder::FlMethodBuilder()
 {
 	capability = 16;
 	len = 0;
-	max_stk = -1;
-	max_locals = -1;
+	max_stk = 0;
+	max_locals = 0;
   code_cache = new instr_t[capability] ;// (instr_t*)malloc(sizeof(instr_t) * capability);
 // const pool
   k_cap = 8;
   k_len = 0;
-  k_cache = new FlValue[k_cap];
+  k_cache = (FlTagValue*) malloc(sizeof(FlValue) * k_cap);
 }
 FlMethodBuilder::~FlMethodBuilder()
 {
@@ -97,7 +97,7 @@ uint8_t FlMethodBuilder::store_const_int(FlInt _i)
 {
   const_pool_size_check();
   uint8_t const_loc = k_len;
-  k_cache[k_len++]._int = _i;
+  k_cache[k_len++].set( _i);
   return const_loc;
 }
 
@@ -105,7 +105,7 @@ uint8_t FlMethodBuilder::store_const_double(FlDouble _d)
 {
   const_pool_size_check();
   uint8_t const_loc = k_len;
-  k_cache[k_len++]._double = _d;
+  k_cache[k_len++].set(_d);
   return const_loc;
 }
 
@@ -121,7 +121,7 @@ FlMethod* FlMethodBuilder::build()
 	ret->_code_len = this->len;
 
   // consts
-  ret->k = new FlValue[k_len];
+  ret->k = (FlTagValue *)malloc(sizeof(FlValue) * k_len);
   for (int i = 0; i < k_len; i++)
   {
     ret->k[i] = k_cache[i];
@@ -224,6 +224,11 @@ void FlFrame::print_frame()
 		for(int i=0; i<current_exec->max_locals(); i++){
 			slocals += locals[i].toString() + " ";
 		}
+    std::string s_konst = "= const: ";
+    for (int i = 0; i < current_exec->_k_len; i++)
+    {
+      s_konst += current_exec->k[i].toString() + " ";
+    }
 		size_t max_line_len = max(max(stks.size(), slocals.size()), head.size()) + 1;
 		head += repeat("=", max_line_len - head.size());
 		stks = append_eq_util(stks, max_line_len);
@@ -231,6 +236,7 @@ void FlFrame::print_frame()
 		printf("%s\n",head.c_str());
 		printf("%s\n",stks.c_str());
 		printf("%s\n",slocals.c_str());
+    printf("%s\n", s_konst.c_str());
 		printf("%s\n",repeat("=",max_line_len).c_str());
 }
 
@@ -276,8 +282,9 @@ void FlSExec::dispatch(instr_t instr)
 		default:
 			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
 	};
-#ifdef FlvmDebug
-	current_frame->print_frame();
+#if 1
+  printf("exec instr %x\n", instr);
+	_m_frame->print_frame();
 #endif
 };
 

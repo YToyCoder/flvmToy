@@ -162,7 +162,7 @@ class FlString : FlObj{
 
 class FlMethod {
   instr_t* codes;
-  FlValue* k;   // const value in method
+  FlTagValue* k;   // const value in method
   size_t _max_stk;
   size_t _max_locals;
   size_t _code_len;
@@ -199,14 +199,14 @@ public:
     FlBool popb(){ stkp--; return stkp->_bool();}
     FlDouble popd() { return (--stkp)->_double(); }
 
-    void ldci(uint8_t k_loc) { pushi(current_exec->k[k_loc]._int);    }
-    void ldcd(uint8_t k_loc) { pushd(current_exec->k[k_loc]._double); }
+    void ldci(uint8_t k_loc) { pushi(current_exec->k[k_loc]._int());    }
+    void ldcd(uint8_t k_loc) { pushd(current_exec->k[k_loc]._double()); }
 
 public:
     void print_frame();
     void init();
     void setLast(FlFrame *frame){ this->last = frame; }
-    bool end_of_pc() { (current_exec->codes + current_exec->_code_len) <= pc; }
+    bool end_of_pc() { return (current_exec->codes + current_exec->_code_len) <= pc; }
 
 private:  
   inline void stkp_out_of_index_check();
@@ -234,10 +234,29 @@ class FlConstPool {
     void put(FlString *key, FlTagValue *value){ _hash_map[key->hash()] = value; }
 };
 
-// a simple executor
+// a simple executor: exec one method
 class FlSExec
 {
-
+public:
+  FlSExec(): _m_frame(nullptr) { }
+  void exec(FlMethod* method)
+  {
+    if (nullptr == method)
+    {
+      throw std::exception("method is nullptr when exec method");
+    }
+    _m_frame = new FlFrame();
+    _m_frame->current_exec = method;
+    _m_frame->init();
+		while(true){
+			if(_m_frame->end_of_pc()){
+				printf("end of pc\n");
+				return;
+			}
+			dispatch(*(_m_frame->pc++));
+		}
+    delete _m_frame;
+  }
 protected:
   inline instr_t read_instr(){ return *(_m_frame->pc++);}
   inline void _iconst_0(){ _m_frame->pushi(1); }
@@ -283,7 +302,7 @@ private:
     if (k_len == k_cap)
     {
       size_t n_len = 1.5 * k_cap;
-      FlValue* n_area = new FlValue[n_len];
+      FlTagValue* n_area =(FlTagValue *) malloc(sizeof( FlTagValue) * n_len);
       for (int i = 0; i < k_len && i < n_len; i++)
       {
         n_area[i] = k_cache[i];
@@ -298,7 +317,7 @@ private:
   size_t max_stk;
   size_t max_locals;
 
-  FlValue* k_cache;
+  FlTagValue* k_cache;
   size_t    k_cap;
   size_t    k_len;
 };
