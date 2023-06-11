@@ -237,6 +237,8 @@ IRNode* CodeGen::visit(IR_Cast* cast)
 			throw std::exception("not support cast");
 		}
 		break;
+	default:
+		throw std::exception("gen code error when gen cast node");
 	}
 	return cast;
 }

@@ -36,6 +36,7 @@ void do_test()
 		CodeGen cg;
 		cg.build(n);
 		auto method = cg.get_method();
+		std::cout << method->to_string() << std::endl;
 		FlSExec exec;
 		exec.exec(method.get());
 		printf("parsing finish\n");

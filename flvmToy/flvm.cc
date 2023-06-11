@@ -184,6 +184,97 @@ inline std::string append_eq_util(std::string str, size_t n){
   return str + repeat(" ", n - str.size() - 1) + "=";
 }
 
+std::string FlMethod::to_string() const
+{
+  std::stringstream ss;
+  size_t instr_cursor = 0;
+  instr_t instr;
+  while (instr_cursor < _code_len)
+  {
+    instr = codes[instr_cursor++];
+    switch (instr)
+    {
+
+		case Instruction::iconst_0: 
+      ss << "iconst_0" << std::endl;
+      break;
+		case Instruction::iconst_1: 
+      ss << "iconst_1" << std::endl;
+      break;
+		case Instruction::iconst_2: 
+      ss << "iconst_2" << std::endl;
+      break;
+		case Instruction::iconst_3: 
+      ss << "iconst_3" << std::endl;
+      break;
+		case Instruction::iconst_4: 
+      ss << "iconst_4" << std::endl;
+      break;
+		case Instruction::dconst_1:
+      ss << "dconst_1" << std::endl;
+      break;
+		case Instruction::dconst_2:
+      ss << "dconst_2" << std::endl;
+      break;
+		case Instruction::ipush:    
+      ss << "ipush " << std::to_string((FlInt) codes[instr_cursor++]) << std::endl;
+      break;
+    case Instruction::dpush:
+      ss << "dpush " << std::to_string((FlDouble) codes[instr_cursor++]) << std::endl;
+      break;
+		case Instruction::iload:
+      ss << "iload " << std::to_string((FlInt) codes[instr_cursor++]) << std::endl;
+      break;
+		case Instruction::dload:
+      ss << "dload " << std::to_string((FlInt) codes[instr_cursor++]) << std::endl;
+      break;
+
+		case Instruction::iadd: 
+      ss << "iadd" << std::endl;
+      break;
+		case Instruction::dadd: 
+      ss << "dadd" << std::endl;
+      break;
+		case Instruction::isub: 
+      ss << "isub" << std::endl;
+      break;
+		case Instruction::dsub: 
+      ss << "dsub" << std::endl;
+      break;
+		case Instruction::imul: 
+      ss << "imul" << std::endl;
+      break;
+		case Instruction::dmul: 
+      ss << "dmul" << std::endl;
+      break;
+		case Instruction::idiv: 
+      ss << "idiv" << std::endl;
+      break;
+		case Instruction::ddiv: 
+      ss << "ddiv" << std::endl;
+      break;
+    case Instruction::ldci: 
+      ss << "ldci " << std::to_string(codes[instr_cursor++]) << std::endl;
+      break;
+    case Instruction::ldcd: 
+      ss << "ldcd " << std::to_string(codes[instr_cursor++]) << std::endl;
+      break;
+    case Instruction::i2d:
+      ss << "i2d" << std::endl;
+      break;
+    case Instruction::i2b:
+      ss << "i2b" << std::endl;
+      break;
+    case Instruction::d2i:
+      ss << "d2i" << std::endl;
+      break;
+    default:
+      throw std::exception("not support instruction when code to string");
+    }
+  }
+  return ss.str();
+}
+
 void FlFrame::init()
 {
 	// pc

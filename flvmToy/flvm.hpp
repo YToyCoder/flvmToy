@@ -18,7 +18,7 @@ void COLOR_PRINT(const char* s, int color);
 uint64_t hash_cstr(const char *p, size_t len);
 
 struct Instruction {
-  enum Code {
+  enum Code: uint8_t {
     iconst_0 = 0x00,
     iconst_1 = 0x01,
     iconst_2 = 0x02,
@@ -172,7 +172,9 @@ class FlMethod {
   public:
     size_t max_stk()    { return _max_stk; }
     size_t max_locals() { return _max_locals; }
+    std::string to_string() const;
 };
+
 
 class FlFrame
 {
@@ -251,7 +253,7 @@ public:
 		while(true){
 			if(_m_frame->end_of_pc()){
 				printf("end of pc\n");
-				return;
+				break;
 			}
 			dispatch(*(_m_frame->pc++));
 		}

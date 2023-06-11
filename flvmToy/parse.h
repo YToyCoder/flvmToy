@@ -95,11 +95,11 @@ private:
 // type operation
 	inline CodeGenType pop_t()
 	{
-		CodeGenType t = t_stk.front();
-		t_stk.pop_front();
+		CodeGenType t = t_stk.back();
+		t_stk.pop_back();
 		return t;
 	}
-	inline CodeGenType top_t() { return t_stk.front(); }
+	inline CodeGenType top_t() { return t_stk.back(); }
 	inline void push_t(CodeGenType t) 
 	{ 
 		t_stk.push_back(t); 
