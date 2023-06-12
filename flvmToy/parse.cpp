@@ -347,5 +347,7 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 
 sptr_t<FlMethod> CodeGen::get_method()
 {
+	_m_builder.set_max_stk(max_stk_size);
+	_m_builder.set_max_locals(m_max_local);
 	return sptr_t<FlMethod>(_m_builder.build());
 }
