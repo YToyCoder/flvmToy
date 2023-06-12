@@ -10,6 +10,7 @@
 #include "unicode/unistr.h"
 
 #include "token.h"
+#include "context.h"
 
 #define BufSize 1024
 
@@ -18,7 +19,7 @@ class Lex
 public:
 	Lex(const std::string& rFilename);
 	~Lex();
-	bool init();
+	bool init(Context* c);
 
 	// check if have token to read
 	bool has_token();
@@ -44,7 +45,8 @@ protected:
 	inline token_t one_char_token(TokenKind _kind) 
 	{ 
 		token_t tok = create_token(_kind, m_file_offset, 1);
-		next_char(); // drop char
+		save_token_str(m_file_offset, next_char());
+		//next_char(); // drop char
 		return tok;
 	}
 	// buffer
@@ -75,6 +77,10 @@ protected:
 	inline bool is_underscore(UChar c)		{ return (char)(c & 0x007F) == '_'; }
 	inline bool is_numeric(UChar32 cp)		{ return u_isalnum(cp); }
 	inline bool is_dot(UChar uc)					{ return get_cchar_from_uchar(uc) == '.'; }
+	inline void save_token_str(uint32_t s, const unistr_t& str)
+	{
+		m_context->store_token_str(s, str);
+	}
 private:
 	LexState mState;
 
@@ -86,6 +92,6 @@ private:
 	uint16_t mBufLimit;
 	uint16_t mBufCursor;
 	token_t mtok;
-	
-	std::map<uint32_t, unistr_t> m_str;
+
+	Context* m_context;
 };

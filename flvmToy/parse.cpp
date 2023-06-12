@@ -31,6 +31,16 @@ token_t Parser::next_tok()
 	return tok;
 }
 
+token_t Parser::next_tok_must(TokenKind tk)
+{
+	token_t t = next_tok();
+	if (!token_is_kind(t, tk))
+	{
+		throw std::exception("token is not expected kind");
+	}
+	return t;
+}
+
 bool Parser::has_tok()
 {
 	return !_m_tok_cache.empty() || _m_lex.has_token();
@@ -39,7 +49,14 @@ bool Parser::has_tok()
 IRNode* Parser::parse()
 {
 	if (has_tok())
-		return parsing_add();
+	{
+		switch (token_kind(token()))
+		{
+		case TokLet:	return parsing_decl();
+		default:			return parsing_add();
+		}
+	}
+	printf("does not have token\n");
 	return nullptr;
 }
 
@@ -138,6 +155,15 @@ IRNode* Parser::parsing_add()
 	return binary_parsing_proccess(&token_is_add, [this]() { return parsing_mul(); });
 }
 
+IRNode* Parser::parsing_decl()
+{
+	token_t let = next_tok_must(TokLet);
+	token_t id = next_tok_must(TokId);
+	next_tok_must(TokAssign);
+	IRNode* init = parsing_add();
+	return new IR_Decl(let, tok_end(let), init, _m_lex.token_string(id));
+}
+
 IRNode* TypeConvert::convert(IRNode* ir)
 {
 	if (nullptr == ir) return ir;
@@ -179,19 +205,32 @@ IRNode* TypeConvert::visit(IR_BinOp* ir)
 	}
 }
 
-IRNode* TypeConvert::visit(IR_Cast* id) 
+IRNode* TypeConvert::visit(IR_Cast* cast) 
 { 
 	pop_t();
-	if (id->cast_to() == NodeInt)
+	if (cast->cast_to() == NodeInt)
 	{
 		push_t(CodeGen_I);
 	}
-	if (id->cast_to() == NodeDouble)
+	if (cast->cast_to() == NodeDouble)
 	{
 		push_t(CodeGen_D);
 	}
-	return id; 
+	return cast; 
 }
+IRNode* TypeConvert::visit(IR_Id* id)
+{
+	push_t(id_node_type(id));
+	return id;
+}
+
+IRNode* TypeConvert::visit(IR_Decl* decl)
+{
+	decl->init()->accept(*this);
+	pop_t();
+	return decl;
+}
+
 void CodeGen::build(IRNode* ir)
 {
 	if (ir == nullptr) {
@@ -343,6 +382,34 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 		// shouldn't reach here 
 		printf("binary two side type is not equal\n");
 	}
+}
+
+IRNode* CodeGen::visit(IR_Id* id)
+{
+	unistr_t id_str; 
+	find_node_str(id, id_str);
+	push_t(variable_t(id_str));
+	local_for_name(id_str);
+	return id;
+}
+
+IRNode* CodeGen::visit(IR_Decl* decl)
+{
+	CodeGenType t = pop_t();
+	unistr_t name = decl->id();
+	switch (t)
+	{
+	case CodeGen_I: 
+		add_instr(Instruction::iload);
+		add_instr(local_for_name(name));
+		break;
+	case CodeGen_D:
+		add_instr(Instruction::dload);
+		add_instr(local_for_name(name));
+		break;
+	default: throw std::exception("encounter unsupported type when gen code for decl");
+	}
+	return decl;
 }
 
 sptr_t<FlMethod> CodeGen::get_method()

@@ -15,11 +15,12 @@ Lex::~Lex()
 	u_fclose(mFileHandle);
 }
 
-bool Lex::init() {
+bool Lex::init(Context* c) {
 	mFileHandle = u_fopen(mFilename.c_str(), "r", NULL, NULL);
 	if (mFileHandle == NULL) return false;
 	mBufCursor = 0;
 	mBufLimit = 0;
+	m_context = c;
 	mState = LexState_Init;
 
 	// read the first token
@@ -86,6 +87,7 @@ token_t Lex::fetch_token() {
 			case '-': return one_char_token(TokSub);
 			case '*': return one_char_token(TokMul);
 			case '/': return one_char_token(TokDiv);
+			case '=': return one_char_token(TokAssign);
 		}
 	}
 	// need throw exception 
@@ -137,10 +139,10 @@ token_t Lex::numeric_token() {
 	if (has_char() && is_dot(peek_char())) {
 		next_char(); // drop dot
 		proc_num(str);
-		m_str.insert(std::make_pair(token_start, str));
+		save_token_str(token_start, str);
 		return create_token(TokFloat, token_start, m_file_offset - token_start);
 	}
-	m_str.insert(std::make_pair(token_start, str));
+	save_token_str(token_start, str);
 	return create_token(TokInt, token_start, m_file_offset - token_start);
 }
 
@@ -160,11 +162,20 @@ token_t Lex::alphabetic_start_token() {
 #if 0
 	std::cout << "read token str " << str << std::endl;
 #endif
-	m_str.insert(std::make_pair(token_start, str));
+	save_token_str(token_start, str);
+	if (str == "let")
+	{
+		return create_token(TokLet, token_start, m_file_offset - token_start);
+	}
 	return create_token(TokId, token_start, m_file_offset - token_start);
 }
 
 unistr_t Lex::token_string(token_t tok)
 {
-	return m_str[tok_foffset(tok)];
+	unistr_t str;
+	if(m_context->find_tok_str(tok, str))
+		return str;
+	std::cout <<  "not find str for token " << token_to_str(tok) << std::endl;
+	m_context->print();
+	throw std::exception("not find str for token");
 }

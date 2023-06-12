@@ -54,7 +54,7 @@ FlMethodBuilder::~FlMethodBuilder()
   }
   if (nullptr != k_cache)
   {
-    delete[] k_cache;
+    free(k_cache);
   }
 }
 

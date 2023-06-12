@@ -20,6 +20,9 @@ enum TokenKind : uint8_t
 	TokDiv , // /
 	TokLParent , // (
 	TokRParent ,  // )
+	// declaration
+	TokLet, // let
+	TokAssign, // =
 	// control
 	TokEol, // end of line => \n
 	TokEof, // end of file

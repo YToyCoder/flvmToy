@@ -13,27 +13,34 @@ void do_test()
 {
 #ifdef TOK_TEST
 	{
-		tok_test1();
-		Lex lex("new.txt");
-		lex.init();
-		while (lex.has_token()) {
-			token_t t = lex.next_token();
-			printf(">> %s\n", token_to_str(t).c_str());
-			std::cout << lex.token_string(t) << std::endl;
-		}
+		//tok_test1();
+		//Lex lex("new.txt");
+		//Context ct;
+		//lex.init(&ct);
+		//while (lex.has_token()) {
+		//	token_t t = lex.next_token();
+		//	printf(">> %s\n", token_to_str(t).c_str());
+		//	std::cout << lex.token_string(t) << std::endl;
+		//}
 	}
 
 	{
 		Parser parser("new.txt");
+		Context ct;
+		if (!parser.init(&ct))
+		{
+			printf("inittialize failed \n");
+			return;
+		}
 		IRNode* node = parser.parse();
 		IR_String irs;
 		std::cout << irs.stringify(node) << std::endl;;
-		TypeConvert tc;
+		TypeConvert tc(&ct);
 		auto n = tc.convert(node);
 		irs.clear();
 		std::cout << irs.to_string() << std::endl;
 		std::cout << irs.stringify(n) << std::endl;
-		CodeGen cg;
+		CodeGen cg(&ct);
 		cg.build(n);
 		auto method = cg.get_method();
 		std::cout << method->to_string() << std::endl;

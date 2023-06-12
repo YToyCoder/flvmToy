@@ -13,6 +13,8 @@ enum IRNodeTag {
 	IRTag_Div,
 	// 
 	IRTag_Cast,
+	IRTag_Decl, // declaration
+	IRTag_Ass,  // assignment
 };
 
 #define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
@@ -54,6 +56,7 @@ class IR_Id;
 class IR_Num;
 class IR_BinOp;
 class IR_Cast;
+class IR_Decl;
 
 template <typename _Ty>
 using sptr_t = std::shared_ptr<_Ty> ;
@@ -65,6 +68,7 @@ public:
 	virtual IRNode* visit(IR_Num* _num) = 0;
 	virtual IRNode* visit(IR_BinOp* _bin) = 0;
 	virtual IRNode* visit(IR_Cast* _cast) = 0;
+	virtual IRNode* visit(IR_Decl* decl) = 0;
 };
 
 class Visitor
@@ -74,13 +78,15 @@ public:
 	virtual IRNode* visit(IR_Num* _num) = 0;
 	virtual IRNode* visit(IR_BinOp* _bin) = 0;
 	virtual IRNode* visit(IR_Cast* _cast) = 0;
+	virtual IRNode* visit(IR_Decl* _decl) = 0;
 };
 
 #define IR_Visitor_Impl_Decl() \
-	virtual IRNode* visit(IR_Id* _id)  override; \
-	virtual IRNode* visit(IR_Num* _num) override ; \
-	virtual IRNode* visit(IR_BinOp* _bin) override ; \
-	virtual IRNode* visit(IR_Cast* _cast) override ;
+	virtual IRNode* visit(IR_Id* _id)  override;			\
+	virtual IRNode* visit(IR_Num* _num) override ;		\
+	virtual IRNode* visit(IR_BinOp* _bin) override ;	\
+	virtual IRNode* visit(IR_Cast* _cast) override ;	\
+	virtual IRNode* visit(IR_Decl* _decl) override;
 
 class IRNode
 {
@@ -89,9 +95,9 @@ public:
 	virtual IRNode* accept(IRVisitor& visitor) { throw std::exception("user shuold implement this fn"); };
 	virtual IRNode* accept(Visitor& visitor) { throw std::exception("user shuold implement this fn"); };
 public:
-	token_t		 token()			{ return _m_tok; }
-	uint32_t start_loc()	{ return _m_begin_pos; }
-	uint32_t end_loc()		{ return _m_end_pos; }
+	token_t		 token()		const	{ return _m_tok; }
+	uint32_t start_loc()	const	{ return _m_begin_pos; }
+	uint32_t end_loc()		const { return _m_end_pos; }
 	void set_tok(token_t tok)				{ _m_tok = tok; }
 	void set_end_loc(uint32_t _e)		{ _m_end_pos = _e; }
 	void set_start_loc(uint32_t _s) { _m_begin_pos = _s; }
@@ -210,6 +216,23 @@ private:
 	sptr_t<IRNode> _m_lhs;
 	sptr_t<IRNode> _m_rhs;
 	IRNodeTag _m_tag;
+};
+
+class IR_Decl : public IRNode
+{
+	IRNode_Tag_Impl(IRTag_Decl)
+	IR_Node_Accept_Visitor_Impl()
+public:
+	IR_Decl(token_t tok, uint32_t _e, IRNode* _init, const unistr_t& id)
+		: IRNode(tok, _e), m_id(id), m_init(_init) {}
+	virtual IRNode* accept(IRVisitor& visitor) override;
+	const unistr_t& id() const { return m_id; }
+	IRNode* init() const { return m_init.get(); }
+protected:
+	IR_Decl* set_init(IRNode* _init);
+private:
+	sptr_t<IRNode> m_init; // initial value
+	unistr_t m_id;
 };
 
 class IR_String: protected Visitor

@@ -40,6 +40,20 @@ IR_BinOp* IR_BinOp::set_rhs(IRNode* _rhs)
 	return self;
 }
 
+IRNode* IR_Decl::accept(IRVisitor& visitor)
+{
+	return visitor.visit(set_init(m_init->accept(visitor)));
+}
+
+IR_Decl* IR_Decl::set_init(IRNode* _init)
+{
+	if (_init == m_init.get())
+		return this;
+	auto copy = new IR_Decl(*this);
+	copy->m_init = sptr_t<IRNode>(_init);
+	return copy;
+}
+
 std::string IR_String::stringify(IRNode* ir)
 {
 	ir->accept(*this);
@@ -88,4 +102,15 @@ IRNode* IR_String::visit(IR_BinOp* exp)
 		_m_ss << ">";
 	}
 	return exp;
+}
+
+IRNode* IR_String::visit(IR_Decl* decl)
+{
+	if (nullptr != decl)
+	{
+		_m_ss << "<let?" << decl->id() << "=";
+		decl->init()->accept(*this);
+		_m_ss << ">";
+	}
+	return decl;
 }
