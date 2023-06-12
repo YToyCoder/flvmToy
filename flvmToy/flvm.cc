@@ -370,6 +370,16 @@ void FlSExec::dispatch(instr_t instr)
 		case Instruction::ddiv: _m_frame->ddiv(); break;
     case Instruction::ldci: _m_frame->ldci(read_instr()); break;
     case Instruction::ldcd: _m_frame->ldcd(read_instr()); break;
+    case Instruction::i2d:
+      _m_frame->pushd((FlDouble)_m_frame->popi());
+      break;
+    case Instruction::i2b:
+      _m_frame->pushb((FlBool)_m_frame->popi());
+      break;
+    case Instruction::d2i:
+      _m_frame->pushi(_m_frame->popd());
+      break;
+
 		default:
 			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
 	};
