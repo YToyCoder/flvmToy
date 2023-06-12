@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <stdio.h>
 #include "flvm.hpp"
 #include "MurmurHash2.h"
 
@@ -194,79 +195,78 @@ std::string FlMethod::to_string() const
     instr = codes[instr_cursor++];
     switch (instr)
     {
-
 		case Instruction::iconst_0: 
-      ss << "iconst_0" << std::endl;
+      printf("%04x iconst_0\n", instr);
       break;
 		case Instruction::iconst_1: 
-      ss << "iconst_1" << std::endl;
+      printf("%04x iconst_1\n", instr);
       break;
 		case Instruction::iconst_2: 
-      ss << "iconst_2" << std::endl;
+      printf("%04x iconst_2\n", instr);
       break;
 		case Instruction::iconst_3: 
-      ss << "iconst_3" << std::endl;
+      printf("%04x iconst_3\n", instr);
       break;
 		case Instruction::iconst_4: 
-      ss << "iconst_4" << std::endl;
+      printf("%04x iconst_4\n", instr);
       break;
 		case Instruction::dconst_1:
-      ss << "dconst_1" << std::endl;
+      printf("%04x dconst_1\n", instr);
       break;
 		case Instruction::dconst_2:
-      ss << "dconst_2" << std::endl;
+      printf("%04x dconst_2\n", instr);
       break;
 		case Instruction::ipush:    
-      ss << "ipush " << std::to_string((FlInt) codes[instr_cursor++]) << std::endl;
+      printf("%04x ipush %03d\n", instr, codes[instr_cursor++]);
       break;
     case Instruction::dpush:
-      ss << "dpush " << std::to_string((FlDouble) codes[instr_cursor++]) << std::endl;
+      printf("%04x dpush %03d\n", instr, codes[instr_cursor++]);
       break;
 		case Instruction::iload:
-      ss << "iload " << std::to_string((FlInt) codes[instr_cursor++]) << std::endl;
+      printf("%04x ipush %03d\n", instr, codes[instr_cursor++]);
       break;
 		case Instruction::dload:
-      ss << "dload " << std::to_string((FlInt) codes[instr_cursor++]) << std::endl;
+      printf("%04x dload %03d\n", instr, codes[instr_cursor++]);
       break;
 
 		case Instruction::iadd: 
-      ss << "iadd" << std::endl;
+      printf("%04x iadd \n", instr);
       break;
 		case Instruction::dadd: 
-      ss << "dadd" << std::endl;
+      printf("%04x dadd \n", instr);
       break;
 		case Instruction::isub: 
-      ss << "isub" << std::endl;
+      printf("%04x isub \n", instr);
       break;
 		case Instruction::dsub: 
-      ss << "dsub" << std::endl;
+      printf("%04x dsub \n", instr);
       break;
 		case Instruction::imul: 
-      ss << "imul" << std::endl;
+      printf("%04x imul \n", instr);
       break;
 		case Instruction::dmul: 
-      ss << "dmul" << std::endl;
+      printf("%04x dmul \n", instr);
       break;
 		case Instruction::idiv: 
-      ss << "idiv" << std::endl;
+      printf("%04x idiv \n", instr);
       break;
 		case Instruction::ddiv: 
-      ss << "ddiv" << std::endl;
+      printf("%04x ddiv \n", instr);
       break;
     case Instruction::ldci: 
-      ss << "ldci " << std::to_string(codes[instr_cursor++]) << std::endl;
+      printf("%04x idci %03d\n", instr, codes[instr_cursor++]);
       break;
     case Instruction::ldcd: 
-      ss << "ldcd " << std::to_string(codes[instr_cursor++]) << std::endl;
+      printf("%04x idcd %03d\n", instr, codes[instr_cursor++]);
       break;
     case Instruction::i2d:
-      ss << "i2d" << std::endl;
+      printf("%04x i2d \n", instr);
       break;
     case Instruction::i2b:
-      ss << "i2b" << std::endl;
+      printf("%04x i2b \n", instr);
       break;
     case Instruction::d2i:
-      ss << "d2i" << std::endl;
+      printf("%04x d2i \n", instr);
       break;
     default:
       throw std::exception("not support instruction when code to string");

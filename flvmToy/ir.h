@@ -216,7 +216,10 @@ class IR_String: protected Visitor
 {
 public:
 	std::string stringify(IRNode* ir);
-	void clear() { _m_ss = std::stringstream(); }
+	void clear() 
+	{ 
+		_m_ss.str("");// = std::stringstream(); 
+	}
 	std::string to_string() { return _m_ss.str(); }
 private:
 	IR_Visitor_Impl_Decl()
