@@ -320,10 +320,11 @@ void FlFrame::print_frame()
     {
       s_konst += current_exec->k[i].toString() + " ";
     }
-		size_t max_line_len = max(max(stks.size(), slocals.size()), head.size()) + 1;
+		size_t max_line_len = max(max(max(stks.size(), slocals.size()), head.size()), s_konst.size()) + 1;
 		head += repeat("=", max_line_len - head.size());
 		stks = append_eq_util(stks, max_line_len);
 		slocals = append_eq_util(slocals, max_line_len);
+    s_konst = append_eq_util(s_konst, max_line_len);
 		printf("%s\n",head.c_str());
 		printf("%s\n",stks.c_str());
 		printf("%s\n",slocals.c_str());
@@ -384,7 +385,6 @@ void FlSExec::dispatch(instr_t instr)
 			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
 	};
 #if 1
-  printf("exec instr %x\n", instr);
 	_m_frame->print_frame();
 #endif
 };
