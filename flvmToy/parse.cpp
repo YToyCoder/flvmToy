@@ -303,7 +303,7 @@ CodeGenType CodeGen::gen_num(IR_Num * ir) // -> CodeGenType
 				add_int16_to_code(iv);
 			}
 			else {
-				uint8_t loc = _m_builder.store_const_int(iv);
+				uint8_t loc = store_const(iv);
 				add_instr(Instruction::ldci);
 				add_instr(loc);
 			}
@@ -318,7 +318,7 @@ CodeGenType CodeGen::gen_num(IR_Num * ir) // -> CodeGenType
 			add_instr(instr);
 		}
 		else {
-			uint8_t loc = _m_builder.store_const_double(dv);
+			uint8_t loc =store_const(dv);
 			add_instr(Instruction::ldcd);
 			add_instr(loc);
 		}

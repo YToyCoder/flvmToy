@@ -190,12 +190,12 @@ public:
 
     void iadd() { pushi(popi() + popi()); }
     void dadd() { pushd(popd() + popd()); }
-    void isub() { pushi(popi() - popi()); }
-    void dsub() { pushd(popd() - popd()); }
     void imul() { pushi(popi() * popi()); }
     void dmul() { pushd(popd() * popd()); }
     void idiv() { pushi(popi() / popi()); }
     void ddiv() { pushd(popd() / popd()); }
+    void isub() { FlInt i = popi(); pushi(popi() - i); }
+    void dsub() { FlDouble d = popd(); pushd(popd() - d); }
 
     FlInt popi() { stkp--; return stkp->_int(); }
     FlBool popb(){ stkp--; return stkp->_bool();}
@@ -309,7 +309,7 @@ private:
       {
         n_area[i] = k_cache[i];
       }
-      delete[] k_cache;
+      free(k_cache);
     }
   }
 

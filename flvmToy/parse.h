@@ -185,12 +185,48 @@ private:
 		return local;
 	}
 
+	inline uint8_t store_const(FlInt i)
+	{
+		uint8_t loc;
+		if (!lookup_in_map(m_int_const_map, i, loc))
+		{
+			loc = _m_builder.store_const_int(i);
+			m_int_const_map.insert(std::make_pair(i, loc));
+		}
+		return loc;
+	}
+
+	inline uint8_t store_const(FlDouble d)
+	{
+		uint8_t loc;
+		if (!lookup_in_map(m_double_const_map, d, loc))
+		{
+			loc = _m_builder.store_const_double(d);
+			m_double_const_map.insert(std::make_pair(d, loc));
+		}
+		return loc;
+	}
+
+	template<class _Ty>
+	bool lookup_in_map(const std::map<_Ty,uint8_t>& map,_Ty& key, uint8_t& out)
+	{
+		auto it = map.find(key);
+		if (it == map.end())
+		{
+			return false;
+		}
+		out = it->second;
+		return true;
+	}
+
 	// type stack
 	std::list<CodeGenType> t_stk; // type stack
 	size_t max_stk_size;
 	// local info
 	uint8_t m_max_local; // init 0
 	std::set<uint8_t> m_unused_local;
-	std::map<unistr_t, uint8_t> m_local_name_map; // string map to local index
+	std::map<unistr_t, uint8_t> m_local_name_map;   // string map to local index
+	std::map<FlInt, uint8_t> m_int_const_map;			
+	std::map<FlDouble, uint8_t> m_double_const_map; // 	
 	FlMethodBuilder _m_builder;
 };
