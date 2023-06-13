@@ -388,8 +388,16 @@ IRNode* CodeGen::visit(IR_Id* id)
 {
 	unistr_t id_str; 
 	find_node_str(id, id_str);
-	push_t(variable_t(id_str));
-	local_for_name(id_str);
+	CodeGenType t = variable_t(id_str);
+	push_t(t);
+	uint8_t local = local_for_name(id_str);
+	switch (t)
+	{
+	case CodeGen_D: add_instr(Instruction::dload); break;
+	case CodeGen_I: add_instr(Instruction::iload); break;
+	default: throw std::exception("not support type when gen code for id node");
+	}
+	add_instr(local);
 	return id;
 }
 
