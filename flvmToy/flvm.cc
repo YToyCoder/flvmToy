@@ -174,20 +174,19 @@ class FlFileLoader {
     }
 };
 
-inline std::string repeat(std::string str, size_t n){
-  std::string ret;
+inline std::string repeat(const std::string& str, size_t n){
+  std::stringstream ret;
   for(int i=0; i<n; i++)
-    ret += str;
-  return ret;
+    ret << str;
+  return ret.str();
 }
 
-inline std::string append_eq_util(std::string str, size_t n){
+inline std::string append_eq_util(const std::string& str, size_t n){
   return str + repeat(" ", n - str.size() - 1) + "=";
 }
 
 std::string FlMethod::to_string() const
 {
-  std::stringstream ss;
   size_t instr_cursor = 0;
   instr_t instr;
   while (instr_cursor < _code_len)
@@ -272,7 +271,7 @@ std::string FlMethod::to_string() const
       throw std::exception("not support instruction when code to string");
     }
   }
-  return ss.str();
+  return "";
 }
 
 void FlFrame::init()
@@ -303,32 +302,44 @@ void FlFrame::stkp_out_of_index_check()
 	}
 }
 
+void append(std::stringstream& stream, size_t max_len)
+{
+  size_t append_size = max_len - stream.gcount();
+  for (int i = 0; i < append_size; i++)
+  {
+    stream << " ";
+  }
+  stream << "=";
+}
+
 void FlFrame::print_frame()
 {
 		std::string head("==>>frame data<<");
-		std::string stks("= stk: ");
+		std::stringstream stks("= stk: ");
 		for(FlTagValue *i=stk_base; i<stk_top; i++){
-			std::string el = i < stkp ? "[" + i->toString() + "]" : i->toString();
-			stks += el + " ";
+			stks << (i < stkp ? "[" + i->toString() + "]" : i->toString()) + " ";
 		}
-		std::string slocals = "= locals: ";
+		std::stringstream slocals("= locals: ");
 		for(int i=0; i<current_exec->max_locals(); i++){
-			slocals += locals[i].toString() + " ";
+			slocals << locals[i].toString() + " ";
 		}
-    std::string s_konst = "= const: ";
+    std::stringstream s_konst("= const: ");
     for (int i = 0; i < current_exec->_k_len; i++)
     {
-      s_konst += current_exec->k[i].toString() + " ";
+      s_konst << current_exec->k[i].toString() + " ";
     }
-		size_t max_line_len = max(max(max(stks.size(), slocals.size()), head.size()), s_konst.size()) + 1;
+		size_t max_line_len = max(max(max(stks.gcount(), slocals.gcount()), head.size()), s_konst.gcount()) + 1;
 		head += repeat("=", max_line_len - head.size());
-		stks = append_eq_util(stks, max_line_len);
-		slocals = append_eq_util(slocals, max_line_len);
-    s_konst = append_eq_util(s_konst, max_line_len);
+		//stks = append_eq_util(stks, max_line_len);
+    append(stks, max_line_len);
+		//slocals = append_eq_util(slocals, max_line_len);
+    append(slocals, max_line_len);
+    //s_konst = append_eq_util(s_konst, max_line_len);
+    append(s_konst, max_line_len);
 		printf("%s\n",head.c_str());
-		printf("%s\n",stks.c_str());
-		printf("%s\n",slocals.c_str());
-    printf("%s\n", s_konst.c_str());
+		printf("%s\n",stks.str().c_str());
+		printf("%s\n",slocals.str().c_str());
+    printf("%s\n", s_konst.str().c_str());
 		printf("%s\n",repeat("=",max_line_len).c_str());
 }
 
