@@ -34,12 +34,12 @@ void do_test()
 		}
 		IRNode* node = parser.parse();
 		IR_String irs;
-		//std::cout << irs.stringify(node) << std::endl;;
+		std::cout << irs.stringify(node) << std::endl;;
 		TypeConvert tc(&ct);
 		auto n = tc.convert(node);
-		//irs.clear();
+		irs.clear();
 		//std::cout << irs.to_string() << std::endl;
-		//std::cout << irs.stringify(n) << std::endl;
+		std::cout << irs.stringify(n) << std::endl;
 		CodeGen cg(&ct);
 		cg.build(n);
 		auto method = cg.get_method();

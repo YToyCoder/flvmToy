@@ -48,14 +48,7 @@ bool Parser::has_tok()
 
 IRNode* Parser::parse()
 {
-	if (has_tok())
-	{
-		switch (token_kind(token()))
-		{
-		case TokLet:	return parsing_decl();
-		default:			return parsing_add();
-		}
-	}
+	if (has_tok()) return parsing_block();
 	printf("does not have token\n");
 	return nullptr;
 }
@@ -164,6 +157,27 @@ IRNode* Parser::parsing_decl()
 	return new IR_Decl(let, tok_end(let), init, _m_lex.token_string(id));
 }
 
+IRNode* Parser::parsing_one_line()
+{
+	switch (token_kind(token()))
+	{
+		case TokLet:	return parsing_decl();
+		default:			return parsing_add();
+	}
+}
+
+IRNode* Parser::parsing_block()
+{
+	IR_Block::state_list_t ls;
+	token_t start_token = token();
+	while (has_tok()) {
+		ls.push_back(sptr_t<IRNode>(parsing_one_line()));
+		if (has_tok() && token_is_kind(token(), TokEol))
+			next_tok();
+	}
+	return new IR_Block(start_token, tok_end(start_token), ls);
+}
+
 IRNode* TypeConvert::convert(IRNode* ir)
 {
 	if (nullptr == ir) return ir;
@@ -227,8 +241,25 @@ IRNode* TypeConvert::visit(IR_Id* id)
 IRNode* TypeConvert::visit(IR_Decl* decl)
 {
 	decl->init()->accept(*this);
-	pop_t();
+	std::cout << "decl " << decl->id() << std::endl;
+	switch (pop_t())
+	{
+	case CodeGen_D: 
+		this->decl(decl->id(), NodeDouble);
+		break;
+	case CodeGen_I: 
+		this->decl(decl->id(), NodeInt);
+		break;
+	default:
+		std::cout << "decl " << decl->id() << " wrong" << std::endl;
+		throw std::exception("declare wrong");
+	}
 	return decl;
+}
+
+IRNode* TypeConvert::visit(IR_Block* block)
+{
+	return block;
 }
 
 void CodeGen::build(IRNode* ir)
@@ -239,6 +270,12 @@ void CodeGen::build(IRNode* ir)
 	}
 	ir->accept(*this);
 }
+
+IRNode* CodeGen::visit(IR_Block* block)
+{
+	return block;
+}
+
 
 IRNode* CodeGen::visit(IR_Num* num)
 {
@@ -410,10 +447,12 @@ IRNode* CodeGen::visit(IR_Decl* decl)
 	case CodeGen_I: 
 		add_instr(Instruction::iload);
 		add_instr(local_for_name(name));
+		this->decl(name, NodeInt);
 		break;
 	case CodeGen_D:
 		add_instr(Instruction::dload);
 		add_instr(local_for_name(name));
+		this->decl(name, NodeDouble);
 		break;
 	default: throw std::exception("encounter unsupported type when gen code for decl");
 	}

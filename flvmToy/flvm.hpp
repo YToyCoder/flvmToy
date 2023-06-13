@@ -266,7 +266,7 @@ public:
   }
 protected:
   inline instr_t read_instr(){ return *(_m_frame->pc++);}
-  inline void _iconst_0(){ _m_frame->pushi(1); }
+  inline void _iconst_0(){ _m_frame->pushi(0); }
   inline void _iconst_1(){ _m_frame->pushi(1); }
   inline void _iconst_2(){ _m_frame->pushi(2); }
   inline void _iconst_3(){ _m_frame->pushi(3); }

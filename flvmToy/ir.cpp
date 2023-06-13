@@ -54,6 +54,11 @@ IR_Decl* IR_Decl::set_init(IRNode* _init)
 	return copy;
 }
 
+IRNode* IR_Block::accept(IRVisitor& visitor)
+{
+	return visitor.visit(proc_ls(visitor));
+}
+
 std::string IR_String::stringify(IRNode* ir)
 {
 	ir->accept(*this);
@@ -113,4 +118,19 @@ IRNode* IR_String::visit(IR_Decl* decl)
 		_m_ss << ">";
 	}
 	return decl;
+}
+
+IRNode* IR_String::visit(IR_Block* block)
+{
+	if (nullptr != block)
+	{
+		_m_ss << "{" << std::endl;
+		for (const auto& it : block->list())
+		{
+			it->accept(*this);
+			_m_ss << std::endl;
+		}
+		_m_ss << "}" << std::endl;
+	}
+	return block;
 }

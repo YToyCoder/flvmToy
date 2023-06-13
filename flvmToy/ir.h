@@ -2,6 +2,7 @@
 #include "common.h"
 #include "token.h"
 #include <memory>
+#include <vector>
 #include <sstream>
 
 enum IRNodeTag {
@@ -15,6 +16,8 @@ enum IRNodeTag {
 	IRTag_Cast,
 	IRTag_Decl, // declaration
 	IRTag_Ass,  // assignment
+	//
+	IRTag_Block,
 };
 
 #define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
@@ -57,36 +60,38 @@ class IR_Num;
 class IR_BinOp;
 class IR_Cast;
 class IR_Decl;
+class IR_Block;
 
 template <typename _Ty>
 using sptr_t = std::shared_ptr<_Ty> ;
 
+#define Visitor_Methods_Decl()								\
+	virtual IRNode* visit(IR_Id* id) = 0;			\
+	virtual IRNode* visit(IR_Num* num) = 0;		\
+	virtual IRNode* visit(IR_BinOp* bin) = 0;	\
+	virtual IRNode* visit(IR_Cast* cast) = 0;	\
+	virtual IRNode* visit(IR_Decl* decl) = 0;		\
+	virtual IRNode* visit(IR_Block* block) = 0;
+
 class IRVisitor
 {
 public:
-	virtual IRNode* visit(IR_Id* _id) = 0;
-	virtual IRNode* visit(IR_Num* _num) = 0;
-	virtual IRNode* visit(IR_BinOp* _bin) = 0;
-	virtual IRNode* visit(IR_Cast* _cast) = 0;
-	virtual IRNode* visit(IR_Decl* decl) = 0;
+	Visitor_Methods_Decl()
 };
 
 class Visitor
 {
 public:
-	virtual IRNode* visit(IR_Id* _id) = 0;
-	virtual IRNode* visit(IR_Num* _num) = 0;
-	virtual IRNode* visit(IR_BinOp* _bin) = 0;
-	virtual IRNode* visit(IR_Cast* _cast) = 0;
-	virtual IRNode* visit(IR_Decl* _decl) = 0;
+	Visitor_Methods_Decl()
 };
 
-#define IR_Visitor_Impl_Decl() \
+#define IR_Visitor_Impl_Decl()											\
 	virtual IRNode* visit(IR_Id* _id)  override;			\
 	virtual IRNode* visit(IR_Num* _num) override ;		\
 	virtual IRNode* visit(IR_BinOp* _bin) override ;	\
 	virtual IRNode* visit(IR_Cast* _cast) override ;	\
-	virtual IRNode* visit(IR_Decl* _decl) override;
+	virtual IRNode* visit(IR_Decl* _decl) override;		\
+	virtual IRNode* visit(IR_Block* block) override;
 
 class IRNode
 {
@@ -233,6 +238,38 @@ protected:
 private:
 	sptr_t<IRNode> m_init; // initial value
 	unistr_t m_id;
+};
+
+class IR_Block : public IRNode
+{
+	IRNode_Tag_Impl(IRTag_Block)
+	IR_Node_Accept_Visitor_Impl()
+public:
+	typedef std::vector<sptr_t<IRNode>> state_list_t;
+	typedef state_list_t::iterator ls_iterator_t;
+	IR_Block(token_t t, uint32_t _e, const state_list_t& ls)
+		:IRNode(t,_e), m_state_list(ls) {}
+	const state_list_t& list() const { return m_state_list; }
+	virtual IRNode* accept(IRVisitor& visitor) override;
+protected:
+	inline IR_Block* proc_ls(IRVisitor& visitor)
+	{
+		state_list_t nls;
+		bool changed = false;
+		for (auto& it : m_state_list)
+		{
+			IRNode* itr = it->accept(visitor);
+			if (itr != it.get())
+				changed = true;
+			nls.push_back(sptr_t<IRNode>(itr));
+		}
+		if (!changed) return this;
+		auto copy = new IR_Block(*this);
+		copy->m_state_list = nls;
+		return copy;
+	}
+private:
+	state_list_t m_state_list;
 };
 
 class IR_String: protected Visitor

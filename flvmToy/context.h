@@ -25,6 +25,8 @@ public:
 			return false;
 		}
 		out = it->second;
+		std::cout << "find string : " << out
+			<< " for " << token_to_str(t) << std::endl;
 		return true;
 	}
 

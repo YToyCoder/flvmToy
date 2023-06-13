@@ -29,6 +29,8 @@ protected:
 		std::function<IRNode*()> fn_xhand_side_parsing);
 
 	IRNode* parsing_decl();
+	IRNode* parsing_block();
+	IRNode* parsing_one_line();
 
 	//				token				//
 	inline token_t token(); 
@@ -108,6 +110,14 @@ protected:
 		}
 	}
 
+	void find_token_str(token_t tok, unistr_t& str)
+	{
+		if (!m_context->find_tok_str(tok, str))
+		{
+			throw std::exception("could not find id node token str");
+		}
+	}
+
 
 	std::map<unistr_t, unistr_t> m_name_type_map;
 	Context* m_context;
@@ -118,11 +128,13 @@ public:
 	TypeConvert(Context* c) : NameTypeMap(c) { }
 	IRNode* convert(IRNode* ir);
 private:
+	IR_Visitor_Impl_Decl()
+		/*
 	virtual IRNode* visit(IR_Num* num) override;
 	virtual IRNode* visit(IR_BinOp* bin) override;
 	virtual IRNode* visit(IR_Id* id) override;
 	virtual IRNode* visit(IR_Cast* cast) override;
-	virtual IRNode* visit(IR_Decl* decl) override;
+	virtual IRNode* visit(IR_Decl* decl) override;*/
 	inline void push_t(CodeGenType t) { t_stk.push_back(t); }
 	inline CodeGenType pop_t() {
 		auto t = t_stk.back();
