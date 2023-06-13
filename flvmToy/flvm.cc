@@ -6,6 +6,7 @@
 #include <fstream>
 #include <algorithm>
 #include <stdio.h>
+#include <iomanip>
 #include "flvm.hpp"
 #include "MurmurHash2.h"
 
@@ -34,6 +35,20 @@ FlStringConstPool *FlVM::const_string_pool = nullptr;
 FlVM::State FlVM::_state = State::Uninit;
 
 // vm obj
+
+std::ostream& operator<<(std::ostream& stream, const FlTagValue& value)
+{
+      switch(value.tag()){
+				case FlTagValue::IntTag:    stream << value.union_v()._int; break;
+				case FlTagValue::DoubleTag: stream << std::setprecision(10) <<(FlDouble) value.union_v()._double; break;
+				case FlTagValue::ObjTag:    stream << "obj"; break;
+				case FlTagValue::BoolTag:   stream << value.union_v()._bool; break;
+				case FlTagValue::CharTag:   stream << value.union_v()._char; break;
+				default:                    stream << "nil"; break;
+      };
+
+  return stream;
+}
 FlMethodBuilder::FlMethodBuilder()
 {
 	capability = 16;
@@ -122,7 +137,7 @@ FlMethod* FlMethodBuilder::build()
 	ret->_code_len = this->len;
 
   // consts
-  ret->k = (FlTagValue *)malloc(sizeof(FlValue) * k_len);
+  ret->k = (FlTagValue *)malloc(sizeof(FlTagValue) * k_len);
   for (int i = 0; i < k_len; i++)
   {
     ret->k[i] = k_cache[i];
@@ -185,7 +200,7 @@ inline std::string append_eq_util(const std::string& str, size_t n){
   return str + repeat(" ", n - str.size() - 1) + "=";
 }
 
-std::string FlMethod::to_string() const
+void FlMethod::to_string() const
 {
   size_t instr_cursor = 0;
   instr_t instr;
@@ -271,7 +286,6 @@ std::string FlMethod::to_string() const
       throw std::exception("not support instruction when code to string");
     }
   }
-  return "";
 }
 
 void FlFrame::init()
@@ -311,36 +325,22 @@ void append(std::stringstream& stream, size_t max_len)
   }
   stream << "=";
 }
-
+//#define CPrint
 void FlFrame::print_frame()
 {
-		std::string head("==>>frame data<<");
-		std::stringstream stks("= stk: ");
+    printf("**********************frame data****************************\n");
+    printf("** stk: ");
 		for(FlTagValue *i=stk_base; i<stk_top; i++){
-			stks << (i < stkp ? "[" + i->toString() + "]" : i->toString()) + " ";
+      if (i < stkp) std::cout << "[" << *i << "] ";
+      else std::cout << *i << " ";
 		}
-		std::stringstream slocals("= locals: ");
-		for(int i=0; i<current_exec->max_locals(); i++){
-			slocals << locals[i].toString() + " ";
-		}
-    std::stringstream s_konst("= const: ");
+    printf("\n** locals: ");
+		for(int i=0; i<current_exec->max_locals(); i++)
+        std::cout << locals[i] << " ";
+    printf("\n** const: ");
     for (int i = 0; i < current_exec->_k_len; i++)
-    {
-      s_konst << current_exec->k[i].toString() + " ";
-    }
-		size_t max_line_len = max(max(max(stks.gcount(), slocals.gcount()), head.size()), s_konst.gcount()) + 1;
-		head += repeat("=", max_line_len - head.size());
-		//stks = append_eq_util(stks, max_line_len);
-    append(stks, max_line_len);
-		//slocals = append_eq_util(slocals, max_line_len);
-    append(slocals, max_line_len);
-    //s_konst = append_eq_util(s_konst, max_line_len);
-    append(s_konst, max_line_len);
-		printf("%s\n",head.c_str());
-		printf("%s\n",stks.str().c_str());
-		printf("%s\n",slocals.str().c_str());
-    printf("%s\n", s_konst.str().c_str());
-		printf("%s\n",repeat("=",max_line_len).c_str());
+        std::cout << current_exec->k[i] << " ";
+    printf("\n************************************************************\n");
 }
 
 

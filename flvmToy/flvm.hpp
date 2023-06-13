@@ -87,6 +87,7 @@ class FlTagValue{
     _tag = tag;
     _val._int = 0;
   }
+  FlTagValue() : _tag(0) {}
   friend class FlFrame;
 
   public:
@@ -103,7 +104,7 @@ class FlTagValue{
     void set(FlDouble v){ this->_val._double = v; _tag = DoubleTag; }
     void set(FlObjp v)   { this->_val._obj = v; _tag = ObjTag; }
 
-    enum TagT {
+    enum TagT : uint8_t{
       IntTag,
       DoubleTag,
       ObjTag,
@@ -111,18 +112,22 @@ class FlTagValue{
       CharTag,
       UnInit,
     };
+    inline const FlValue& union_v() const { return _val; }
+    inline TagT tag()  const { return (TagT)_tag; }
 
-    inline std::string toString(){
+    inline void toString(std::string& out){
       switch(_tag){
-        case IntTag:    return std::to_string(_int());
-        case DoubleTag: return std::to_string(_double());
-        case ObjTag:    return "obj";
-        case BoolTag:   return std::to_string(_bool());
-        case CharTag:   return std::to_string(_char());
-        default:        return "nil";
+      case IntTag:    out = std::move(std::to_string(_int()));
+      case DoubleTag: out = std::move(std::to_string(_double()));
+      case ObjTag:    out = ("obj");
+      case BoolTag:   out = std::move(std::to_string(_bool()));
+      case CharTag:   out = std::move(std::to_string(_char()));
+        default:      out = "nil";
       };
     }
 };
+
+std::ostream & operator<<(std::ostream& stream, const FlTagValue& value);
 
 class FlString : FlObj{
   const FlChar *chars;
@@ -172,7 +177,7 @@ class FlMethod {
   public:
     size_t max_stk()    { return _max_stk; }
     size_t max_locals() { return _max_locals; }
-    std::string to_string() const;
+    void to_string() const;
 };
 
 
