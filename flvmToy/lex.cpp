@@ -137,7 +137,7 @@ token_t Lex::numeric_token() {
 	};
 	proc_num(str);
 	if (has_char() && is_dot(peek_char())) {
-		next_char(); // drop dot
+		str += next_char(); // drop dot
 		proc_num(str);
 		save_token_str(token_start, str);
 		return create_token(TokFloat, token_start, m_file_offset - token_start);
