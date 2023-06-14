@@ -13,18 +13,6 @@ void do_test()
 {
 #ifdef TOK_TEST
 	{
-		//tok_test1();
-		//Lex lex("new.txt");
-		//Context ct;
-		//lex.init(&ct);
-		//while (lex.has_token()) {
-		//	token_t t = lex.next_token();
-		//	printf(">> %s\n", token_to_str(t).c_str());
-		//	std::cout << lex.token_string(t) << std::endl;
-		//}
-	}
-
-	{
 		Parser parser("new.txt");
 		Context ct;
 		if (!parser.init(&ct))
@@ -46,7 +34,6 @@ void do_test()
 		method->to_string();
 		FlSExec exec;
 		exec.exec(method.get());
-		printf("parsing finish\n");
 	}
 
 #endif
@@ -59,6 +46,5 @@ void do_test()
 
 int main(int argc, char** argv) {
 	DO_TEST;
-	printf("flvm-toy-main\n");
 	return 0;
 }

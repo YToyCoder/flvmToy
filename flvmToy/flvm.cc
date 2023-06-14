@@ -30,10 +30,6 @@ uint64_t hash_cstr(const char *p, size_t len){
   return MurmurHash64A(p, len, hash_seed);
 }
 
-// vm static define
-FlStringConstPool *FlVM::const_string_pool = nullptr;
-FlVM::State FlVM::_state = State::Uninit;
-
 // vm obj
 
 std::ostream& operator<<(std::ostream& stream, const FlTagValue& value)
@@ -318,7 +314,6 @@ void FlFrame::init()
 void FlFrame::stkp_out_of_index_check()
 {
 	if(stkp < stk_base || stkp >= stk_top){
-		FlVM::error("stack out of index>>\n");
 		exit(1);
 	}
 }
@@ -474,15 +469,3 @@ class FlExec {
       }
     }
 };
-// vm static
-inline FlString *FlVM::ofString(const char *chars, size_t len){
-  FlVM::state_check();
-  return FlVM::const_string_pool->ofFlstring(chars, len);
-}
-inline void FlVM::init(){
-#ifdef FlvmDebug
-  printf("init\n");
-#endif
-  FlVM::_state = FlVM::State::Init;
-  FlVM::const_string_pool = new FlStringConstPool();
-}

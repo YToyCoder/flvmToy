@@ -233,18 +233,6 @@ private:
   friend class FlSExec;
 };
 
-// all global
-class FlConstPool {
-  std::unordered_map<uint64_t, FlTagValue *> _hash_map;
-  public:
-    FlTagValue * lookup(FlString *key) {
-      auto iter = _hash_map.find(key->hash());
-      return (iter == _hash_map.end() ? nullptr : iter->second);
-    }
-
-    void put(FlString *key, FlTagValue *value){ _hash_map[key->hash()] = value; }
-};
-
 // a simple executor: exec one method
 class FlSExec
 {
@@ -331,28 +319,4 @@ private:
   FlTagValue* k_cache;
   size_t    k_cap;
   size_t    k_len;
-};
-
-class FlStringConstPool;
-class FlVM {
-  static FlStringConstPool *const_string_pool;
-  static FlConstPool *const_pool;
-  public:
-  inline static FlString *ofString(const char *chars, size_t len);
-  inline static void init();
-  static void error(const char *chars){
-    COLOR_PRINT(chars, TermColor::Red);
-  }
-  enum State {
-    Uninit,
-    Init,
-  };
-  private:
-  static State _state;
-  static void state_check(){
-    if(_state == Uninit){
-      error("FlVM not init yet\n");
-      exit(1);
-    }
-  }
 };

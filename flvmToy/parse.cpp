@@ -241,7 +241,7 @@ IRNode* TypeConvert::visit(IR_Id* id)
 IRNode* TypeConvert::visit(IR_Decl* decl)
 {
 	decl->init()->accept(*this);
-	std::cout << "decl " << decl->id() << std::endl;
+	//std::cout << "decl " << decl->id() << std::endl;
 	switch (pop_t())
 	{
 	case CodeGen_D: 

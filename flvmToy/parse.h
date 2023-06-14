@@ -129,12 +129,6 @@ public:
 	IRNode* convert(IRNode* ir);
 private:
 	IR_Visitor_Impl_Decl()
-		/*
-	virtual IRNode* visit(IR_Num* num) override;
-	virtual IRNode* visit(IR_BinOp* bin) override;
-	virtual IRNode* visit(IR_Id* id) override;
-	virtual IRNode* visit(IR_Cast* cast) override;
-	virtual IRNode* visit(IR_Decl* decl) override;*/
 	inline void push_t(CodeGenType t) { t_stk.push_back(t); }
 	inline CodeGenType pop_t() {
 		auto t = t_stk.back();
