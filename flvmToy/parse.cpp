@@ -36,6 +36,7 @@ token_t Parser::next_tok_must(TokenKind tk)
 	token_t t = next_tok();
 	if (!token_is_kind(t, tk))
 	{
+		std::cout << token_to_str(t) << std::endl;
 		throw std::exception("token is not expected kind");
 	}
 	return t;
@@ -77,7 +78,7 @@ IRNode* Parser::parsing_id()
 	return new IR_Id(t, tok_foffset(t), tok_end(t));
 }
 
-IRNode* Parser::parsing_literal()
+IRNode* Parser::parsing_one()
 {
 	TokenKind tk = token_kind(token());
 	switch (tk)
@@ -87,6 +88,13 @@ IRNode* Parser::parsing_literal()
 	case TokInt:
 	case TokFloat:
 		return parsing_num();
+	case TokLParent:
+	{
+		next_tok();
+		IRNode* expression = parsing_add();
+		next_tok_must(TokRParent);
+		return expression;
+	}
 	}
 	printf("not support token kind for literal : %s\n", tk_to_str(tk).c_str());
 	throw std::exception("not support kind literal");
@@ -129,7 +137,7 @@ bool token_is_mul(token_t t)
 
 IRNode* Parser::parsing_mul()
 {
-	return binary_parsing_proccess(&token_is_mul, [this]() { return parsing_literal(); });
+	return binary_parsing_proccess(&token_is_mul, [this]() { return parsing_one(); });
 }
 
 bool token_is_add(token_t tok)
@@ -397,7 +405,7 @@ inline Instruction::Code tag_to_double_instr(IRNodeTag tag)
 CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 {
 	CodeGenType rhs_t = pop_t();
-	CodeGenType lhs_t = top_t();
+	CodeGenType lhs_t = pop_t();
 	if (lhs_t == rhs_t)
 	{
 		switch (lhs_t)
@@ -411,7 +419,6 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 			default:
 				throw std::exception("not support other type when codegen");
 		}
-		pop_t();
 		return lhs_t;
 	}
 	else 

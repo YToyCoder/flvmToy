@@ -88,6 +88,8 @@ token_t Lex::fetch_token() {
 			case '*': return one_char_token(TokMul);
 			case '/': return one_char_token(TokDiv);
 			case '=': return one_char_token(TokAssign);
+			case '(': return one_char_token(TokLParent);
+			case ')': return one_char_token(TokRParent);
 		}
 	}
 	// need throw exception 

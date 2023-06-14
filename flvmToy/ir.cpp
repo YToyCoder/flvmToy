@@ -14,7 +14,7 @@ IRNode* IR_BinOp::accept(IRVisitor& visitor)
 	}
 	if (self->_m_rhs.get() != nullptr)
 	{
-		self = self->set_rhs(self->_m_rhs->accept(visitor));
+		self = self->set_rhs(_m_rhs->accept(visitor));
 	}
 	else {
 		printf("error, binary_operator node rhs is nullptr\n");

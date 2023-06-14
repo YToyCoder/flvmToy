@@ -55,11 +55,11 @@ FlMethodBuilder::FlMethodBuilder()
 // const pool
   k_cap = 8;
   k_len = 0;
-  k_cache = (FlTagValue*) malloc(sizeof(FlValue) * k_cap);
+  k_cache = (FlTagValue*) malloc(sizeof(FlTagValue) * k_cap);
 }
 FlMethodBuilder::~FlMethodBuilder()
 {
-  if (nullptr != code_cache)
+  if (nullptr != code_cache && NULL != code_cache)
   {
     delete[] code_cache;
   }
@@ -82,6 +82,7 @@ void FlMethodBuilder::capability_check()
 			new_area[i] = code_cache[i];
 		}
     delete[] code_cache;
+    capability = extend;
 		code_cache = new_area;
 	}
 }
@@ -227,7 +228,7 @@ void FlMethod::to_string() const
       printf("%04x dconst_2\n", instr);
       break;
 		case Instruction::ipush:    
-      printf("%04x ipush %03d\n", instr, codes[instr_cursor++]);
+      printf("%04x ipush %03d\n", instr, sign_extend(codes[instr_cursor++]  << 8| codes[instr_cursor++]));
       break;
     case Instruction::dpush:
       printf("%04x dpush %03d\n", instr, codes[instr_cursor++]);
@@ -264,10 +265,18 @@ void FlMethod::to_string() const
       printf("%04x ddiv \n", instr);
       break;
     case Instruction::ldci: 
-      printf("%04x idci %03d\n", instr, codes[instr_cursor++]);
+    {
+      uint8_t const_loc = codes[instr_cursor++];
+      printf("%04x idci %03d ", instr, const_loc);
+      std::cout << k[const_loc] << std::endl;
+    }
       break;
     case Instruction::ldcd: 
-      printf("%04x idcd %03d\n", instr, codes[instr_cursor++]);
+    {
+      uint8_t const_loc = codes[instr_cursor++];
+      printf("%04x idcd %03d ", instr, const_loc);
+      std::cout << k[const_loc] << std::endl;
+    }
       break;
     case Instruction::i2d:
       printf("%04x i2d \n", instr);
@@ -404,6 +413,7 @@ void FlSExec::dispatch(instr_t instr)
 			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
 	};
 #if 1
+  printf("exec instr %x\n", instr);
 	_m_frame->print_frame();
 #endif
 };

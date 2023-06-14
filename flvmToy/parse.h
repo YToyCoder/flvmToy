@@ -21,7 +21,7 @@ public:
 protected:
 	IRNode* parsing_num();
 	IRNode* parsing_id();
-	IRNode* parsing_literal();
+	IRNode* parsing_one(); // the expression that can treat as one expression
 	IRNode* parsing_mul();
 	IRNode* parsing_add();
 	IRNode* binary_parsing_proccess(

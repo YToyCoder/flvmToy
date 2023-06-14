@@ -244,7 +244,8 @@ public:
     {
       throw std::exception("method is nullptr when exec method");
     }
-    _m_frame = new FlFrame();
+    FlFrame frame;
+    _m_frame = &frame;
     _m_frame->current_exec = method;
     _m_frame->init();
 		while(true){
@@ -254,7 +255,6 @@ public:
 			}
 			dispatch(*(_m_frame->pc++));
 		}
-    delete _m_frame;
   }
 protected:
   inline instr_t read_instr(){ return *(_m_frame->pc++);}
@@ -266,7 +266,7 @@ protected:
   inline void _iload() { _m_frame->loadi(_m_frame->popi(), read_instr());}
   inline void _dpush() { _m_frame->pushd(read_instr()); }
   inline void _ipush() { 
-    FlInt v = sign_extend(read_instr() << 8 | read_instr());
+    FlInt v = sign_extend(read_instr() | read_instr() << 8 );
     _m_frame->pushi(v);
   }
 
@@ -307,6 +307,7 @@ private:
         n_area[i] = k_cache[i];
       }
       free(k_cache);
+      k_cache = n_area;
     }
   }
 
