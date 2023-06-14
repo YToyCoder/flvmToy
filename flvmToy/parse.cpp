@@ -445,14 +445,14 @@ IRNode* CodeGen::visit(IR_Decl* decl)
 	switch (t)
 	{
 	case CodeGen_I: 
-		add_instr(Instruction::iload);
+		add_instr(Instruction::istore);
 		add_instr(local_for_name(name));
-		this->decl(name, NodeInt);
+		decl_variable(name, NodeInt);
 		break;
 	case CodeGen_D:
-		add_instr(Instruction::dload);
+		add_instr(Instruction::dstore);
 		add_instr(local_for_name(name));
-		this->decl(name, NodeDouble);
+		decl_variable(name, NodeDouble);
 		break;
 	default: throw std::exception("encounter unsupported type when gen code for decl");
 	}

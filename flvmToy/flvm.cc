@@ -282,6 +282,13 @@ void FlMethod::to_string() const
     case Instruction::d2i:
       printf("%04x d2i \n", instr);
       break;
+    case Instruction::istore: 
+      printf("%04x istore %03d\n", instr, codes[instr_cursor++]);
+      break;
+    case Instruction::dstore: 
+      printf("%04x dstore %03d\n", instr, codes[instr_cursor++]);
+      break;
+
     default:
       throw std::exception("not support instruction when code to string");
     }
@@ -371,6 +378,12 @@ void FlSExec::dispatch(instr_t instr)
 		case Instruction::dload:
 			_m_frame->loadd(_m_frame->popd(), read_instr());
 			break;
+    case Instruction::istore: 
+      _m_frame->storei(_m_frame->popi(), read_instr()); 
+      break;
+    case Instruction::dstore: 
+      _m_frame->stored(_m_frame->popd(), read_instr()); 
+      break;
 
 		case Instruction::iadd: _m_frame->iadd(); break;
 		case Instruction::dadd: _m_frame->dadd(); break;

@@ -231,6 +231,12 @@ private:
 		return true;
 	}
 
+	inline void decl_variable(unistr_t name, unistr_t t)
+	{
+		decl(name, t);
+		local_for_name(name);
+	}
+
 	// type stack
 	std::list<CodeGenType> t_stk; // type stack
 	size_t max_stk_size;

@@ -31,6 +31,8 @@ struct Instruction {
     iload    = 0x09,
     dload    = 0x0A,
     aload    = 0x0B,
+    istore   = 0x0C,
+    dstore   = 0x0D,
     ldci     = 0x11, // load int from consts
     ldcd     = 0x12, // load double from consts
 
@@ -190,8 +192,10 @@ public:
     void pushd(FlDouble v){ stkp->set(v); stkp++; }
     void pushb(FlBool v)  { stkp->set(v); stkp++; }
     void pushi(FlInt v)   { stkp->set(v); stkp++; }
-    void loadi(FlInt v, size_t loc) { locals[loc].set(v); }
-    void loadd(FlDouble v, size_t loc) { locals[loc].set(v); }
+    void loadi(FlInt v, size_t loc) { pushi(locals[loc]._int()); }
+    void loadd(FlDouble v, size_t loc) { pushd(locals[loc]._double()); }
+    void storei(FlInt i, size_t loc) { locals[loc].set(i); }
+    void stored(FlDouble i, size_t loc) { locals[loc].set(i); }
 
     void iadd() { pushi(popi() + popi()); }
     void dadd() { pushd(popd() + popd()); }
