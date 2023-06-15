@@ -40,7 +40,7 @@ flvm is a stack based vm, it support instruction as follow:
 
 the runtime instruction code example:
 
-![runtime-example](doc/runtime_instruction.png)
+![runtime-example](https://github.com/YToyCoder/flvmToy/blob/main/doc/runtime_instruction.png)
 
 ### 2. sytax 语法支持
 
