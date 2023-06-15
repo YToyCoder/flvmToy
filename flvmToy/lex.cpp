@@ -87,9 +87,11 @@ token_t Lex::fetch_token() {
 			case '-': return one_char_token(TokSub);
 			case '*': return one_char_token(TokMul);
 			case '/': return one_char_token(TokDiv);
-			case '=': return one_char_token(TokAssign);
+			case '=': return one_or_two_token(TokAssign, std::make_pair(TokEq,'='));
 			case '(': return one_char_token(TokLParent);
 			case ')': return one_char_token(TokRParent);
+			case '<': return one_or_two_token(TokLt, std::make_pair(TokLe, '='));
+			case '>': return one_or_two_token(TokGt, std::make_pair(TokGe, '='));
 		}
 	}
 	// need throw exception 

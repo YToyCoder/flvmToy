@@ -49,6 +49,21 @@ protected:
 		//next_char(); // drop char
 		return tok;
 	}
+
+	inline token_t one_or_two_token(TokenKind _one_char_kind, std::pair<TokenKind,UChar> kind_and_char)
+	{
+		unistr_t str;
+		uint32_t pos_record = m_file_offset;
+		str += next_char();
+		if (get_cchar_from_uchar(peek_char()) == kind_and_char.second)
+		{
+			str += next_char();
+			save_token_str(pos_record, str);
+			return create_token(kind_and_char.first, pos_record, 2);
+		}
+		return create_token(_one_char_kind, pos_record, 1);
+	}
+
 	// buffer
 	void try_ensure_buf();
 	void fill_buffer();

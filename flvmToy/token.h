@@ -23,7 +23,14 @@ enum TokenKind : uint8_t
 	// declaration
 	TokLet, // let
 	TokAssign, // =
+	// 
+	TokEq, // ==
+	TokLt, // <
+	TokLe, // <=
+	TokGt, // >
+	TokGe, // >=
 	// control
+	TokIf,
 	TokEol, // end of line => \n
 	TokEof, // end of file
 };
