@@ -267,14 +267,14 @@ void FlMethod::to_string() const
     case Instruction::ldci: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%04x idci %03d ", instr, const_loc);
+      printf("%04x ldci %03d ", instr, const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
     case Instruction::ldcd: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%04x idcd %03d ", instr, const_loc);
+      printf("%04x ldcd %03d ", instr, const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
