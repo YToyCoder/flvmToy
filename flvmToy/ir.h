@@ -12,10 +12,17 @@ enum IRNodeTag {
 	IRTag_Sub,
 	IRTag_Mul,
 	IRTag_Div,
+	IRTag_Eq, // ==
+	IRTag_Lt, // <
+	IRTag_Le, // <=
+	IRTag_Gt, // >
+	IRTag_Ge, // >=
 	// 
 	IRTag_Cast,
 	IRTag_Decl, // declaration
 	IRTag_Ass,  // assignment
+	// 
+	IRTag_If,
 	//
 	IRTag_Block,
 };
@@ -38,6 +45,11 @@ inline std::string IRTag_to_string(IRNodeTag _tag)
 		TagToStringCase(Sub, "-");
 		TagToStringCase(Mul, "*");
 		TagToStringCase(Div, "/");
+		TagToStringCase(Eq, "==");
+		TagToStringCase(Lt, "<");
+		TagToStringCase(Le, "<=");
+		TagToStringCase(Gt, ">");
+		TagToStringCase(Ge, ">=");
 	}
 	throw std::exception("tag to string error");
 }
@@ -50,6 +62,12 @@ inline IRNodeTag token_kind_to_tag(TokenKind tk)
 		TOKEN_KIND_RET_TAG(Sub);
 		TOKEN_KIND_RET_TAG(Mul);
 		TOKEN_KIND_RET_TAG(Div);
+		TOKEN_KIND_RET_TAG(Eq);
+		TOKEN_KIND_RET_TAG(Lt);
+		TOKEN_KIND_RET_TAG(Le);
+		TOKEN_KIND_RET_TAG(Ge);
+		TOKEN_KIND_RET_TAG(Gt);
+
 	}
 	throw std::exception("token kind to tag error");
 }

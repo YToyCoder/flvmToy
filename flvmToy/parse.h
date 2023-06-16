@@ -24,6 +24,7 @@ protected:
 	IRNode* parsing_one(); // the expression that can treat as one expression
 	IRNode* parsing_mul();
 	IRNode* parsing_add();
+	IRNode* parsing_comp();
 	IRNode* binary_parsing_proccess(
 		std::function<bool(token_t)> fn_token_is_right_kind,
 		std::function<IRNode*()> fn_xhand_side_parsing);
@@ -38,6 +39,7 @@ protected:
 	inline token_t next_tok_must(TokenKind tk);
 	inline bool		has_tok(); 
 	inline void		try_fill_cache();
+	inline uint32_t cur_pos() const { return _m_lex.cur_pos(); }
 private:
 	std::list<token_t> _m_tok_cache;
 	Lex _m_lex;
@@ -47,6 +49,7 @@ enum CodeGenType
 {
 	CodeGen_I, // int
 	CodeGen_D, // double
+	CodeGen_B, // 
 };
 
 inline CodeGenType better_type(CodeGenType ta, CodeGenType tb)
@@ -180,7 +183,7 @@ private:
 		}
 	}
 
-	// 从本地变量表中申请一个新的本地变量表
+	// 浠庢湰鍦板彉閲忚〃涓敵璇蜂竴涓柊鐨勬湰鍦板彉閲忚〃
 	inline uint8_t local_for_name(unistr_t name)
 	{
 		auto it = m_local_name_map.find(name);

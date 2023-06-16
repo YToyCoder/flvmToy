@@ -13,8 +13,13 @@ std::string tk_to_str(token_t tok) {
 	case TokEol: return "Eol";
 	case TokFloat:
 	case TokInt:		return "Num";
-	case TokAssign: return "=";
+	case TokAssign: return "ass";
 	case TokLet:		return "let";
+	case TokEq:			return "eq";
+	case TokLt:			return "lt";
+	case TokLe:			return "le";
+	case TokGt:			return "gt";
+	case TokGe:			return "ge";
 	default:				return "?";
 	}
 }

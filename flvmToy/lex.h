@@ -31,6 +31,8 @@ public:
 	token_t peek_token();
 	// get the string value of token
 	unistr_t token_string(token_t tok);
+	// current position in file
+	inline uint32_t cur_pos() const { return m_file_offset; }
 protected:
 #define LexBufCapability 100
 	enum LexState {

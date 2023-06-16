@@ -73,6 +73,19 @@ inline bool token_is_operator(token_t tok)
 	return false;
 }
 
+inline bool token_is_comp_operator(token_t tok)
+{
+	switch(token_kind(tok))
+	{
+		case TokEq:
+		case TokLe:
+		case TokLt:
+		case TokGe:
+		case TokGt:	return true;
+		default: 		return false;
+	}
+}
+
 #ifdef TOK_TEST
 void tok_test1();
 #endif

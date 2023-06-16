@@ -140,6 +140,25 @@ IRNode* Parser::parsing_mul()
 	return binary_parsing_proccess(&token_is_mul, [this]() { return parsing_one(); });
 }
 
+IRNode* Parser::parsing_comp()
+{
+	IRNode* lhs = parsing_add();
+	switch (token_kind(token()))
+	{
+	case TokLt:
+	case TokLe:
+	case TokGt:
+	case TokGe:
+	case TokEq:
+		break;
+
+	default: return lhs;
+	}
+	token_t token = next_tok();
+	IRNode* rhs = parsing_add();
+	return new IR_BinOp(token, cur_pos(), token_kind_to_tag(token_kind(token)), lhs, rhs);
+}
+
 bool token_is_add(token_t tok)
 {
 	switch (token_kind(tok))
@@ -161,7 +180,7 @@ IRNode* Parser::parsing_decl()
 	token_t let = next_tok_must(TokLet);
 	token_t id = next_tok_must(TokId);
 	next_tok_must(TokAssign);
-	IRNode* init = parsing_add();
+	IRNode* init = parsing_comp();
 	return new IR_Decl(let, tok_end(let), init, _m_lex.token_string(id));
 }
 
@@ -207,24 +226,28 @@ IRNode* TypeConvert::visit(IR_BinOp* ir)
 {
 	CodeGenType rhs_t = pop_t();
 	CodeGenType lhs_t = pop_t();
-	if (lhs_t == rhs_t) {
-		push_t(lhs_t);
-		return ir;
-	}
-	else {
-		CodeGenType t = better_type(lhs_t, rhs_t);
-		push_t(t);
-		if (t == lhs_t) {
+	CodeGenType after_operation_type = lhs_t;
+	IR_BinOp* result_ir = ir;
+	if (lhs_t != rhs_t) {
+		after_operation_type = better_type(lhs_t, rhs_t);
+		if (after_operation_type == lhs_t) {
 			IRNode* irRHS = ir->rhs();
 			IRNode* rhs = new IR_Cast(irRHS->end_loc(), irRHS, NodeDouble);
-			return new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), ir->lhs(), rhs);
+			result_ir = new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), ir->lhs(), rhs);
 		}
 		else {
 			IRNode* irLHS = ir->lhs();
 			IRNode* lhs = new IR_Cast(irLHS->end_loc(), irLHS, NodeDouble);
-			return new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), lhs, ir->rhs());
+			result_ir = new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), lhs, ir->rhs());
 		}
 	}
+	if(token_is_comp_operator(result_ir->token()))
+	{
+		push_t(CodeGen_B);
+		return new IR_Cast(result_ir->end_loc(), result_ir, NodeBool);
+	}
+	push_t(after_operation_type);
+	return result_ir;
 }
 
 IRNode* TypeConvert::visit(IR_Cast* cast) 
@@ -257,6 +280,9 @@ IRNode* TypeConvert::visit(IR_Decl* decl)
 		break;
 	case CodeGen_I: 
 		this->decl(decl->id(), NodeInt);
+		break;
+	case CodeGen_B:
+		this->decl(decl->id(), NodeBool);
 		break;
 	default:
 		std::cout << "decl " << decl->id() << " wrong" << std::endl;
@@ -383,6 +409,7 @@ inline Instruction::Code tag_to_int_instr(IRNodeTag tag)
 	switch (tag)
 	{
 		case IRTag_Add: return Instruction::iadd;
+		case IRTag_Eq:
 		case IRTag_Sub: return Instruction::isub;
 		case IRTag_Mul: return Instruction::imul;
 		case IRTag_Div: return Instruction::idiv;
