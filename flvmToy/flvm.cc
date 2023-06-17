@@ -247,12 +247,12 @@ inline std::string append_eq_util(const std::string& str, size_t n){
 #define STR(content) #content
 #define Case_Print(instruction)                                   \
   case Instruction::## instruction ##:                            \
-  printf( STR( %03d  %04x < ## instruction>\n), ic_record, instr); \
+  printf( STR( %03d  %04x %10s\n), ic_record, instr, #instruction); \
   break;
 
 #define Case_Print_One_Param(instruction)                                   \
   case Instruction::## instruction ##:                                      \
-  printf( STR( %03d  %04x < ## instruction ## > %03d \n), ic_record, instr , codes[instr_cursor++]); \
+  printf( STR( %03d  %04x %10s %03d \n), ic_record, instr , #instruction , codes[instr_cursor++]); \
   break;
 
 void FlMethod::to_string() const
@@ -273,8 +273,12 @@ void FlMethod::to_string() const
     Case_Print(iconst_4)
     Case_Print(dconst_1)
     Case_Print(dconst_2)
-    case Instruction::ipush:    
-      printf("%03d %04x ipush %03d\n", ic_record, instr, sign_extend(codes[instr_cursor++] << 8 | codes[instr_cursor++]));
+    case Instruction::ipush: 
+    {
+      uint8_t i1 = codes[instr_cursor++];
+      uint8_t i2 = codes[instr_cursor++];
+      printf("%03d %04x %10s %03d\n", ic_record, instr, "ipush", sign_extend(i1 | ( i2 << 8) ));
+    }
       break;
     Case_Print_One_Param(dpush)
     Case_Print_One_Param(iload)
@@ -291,14 +295,14 @@ void FlMethod::to_string() const
     case Instruction::ldci: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%03d %04x ldci %03d ", ic_record, instr, const_loc);
+      printf("%03d %04x %10s %03d ", ic_record, instr, "ldci", const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
     case Instruction::ldcd: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%03d %04x ldcd %03d ", ic_record, instr, const_loc);
+      printf("%03d %04x %10s %03d ", ic_record, instr, "ldcd", const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
