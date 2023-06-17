@@ -241,11 +241,11 @@ IRNode* TypeConvert::visit(IR_BinOp* ir)
 			result_ir = new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), lhs, ir->rhs());
 		}
 	}
-	if(token_is_comp_operator(result_ir->token()))
-	{
-		push_t(CodeGen_B);
-		return new IR_Cast(result_ir->end_loc(), result_ir, NodeBool);
-	}
+	//if(token_is_comp_operator(result_ir->token()))
+	//{
+	//	push_t(CodeGen_B);
+	//	return new IR_Cast(result_ir->end_loc(), result_ir, NodeBool);
+	//}
 	push_t(after_operation_type);
 	return result_ir;
 }
@@ -404,19 +404,6 @@ IRNode* CodeGen::visit(IR_BinOp* ir)
 	return ir;
 }
 
-inline Instruction::Code tag_to_int_instr(IRNodeTag tag)
-{
-	switch (tag)
-	{
-		case IRTag_Add: return Instruction::iadd;
-		case IRTag_Eq:
-		case IRTag_Sub: return Instruction::isub;
-		case IRTag_Mul: return Instruction::imul;
-		case IRTag_Div: return Instruction::idiv;
-	}
-	throw std::exception("not support tag convert to instruction");
-}
-
 inline Instruction::Code tag_to_double_instr(IRNodeTag tag)
 {
 	switch (tag)
@@ -433,12 +420,40 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 {
 	CodeGenType rhs_t = pop_t();
 	CodeGenType lhs_t = pop_t();
+	auto&& gen_comp_code = [&](Instruction::Code instr)
+	{
+		add_instr(Instruction::isub);
+		add_instr(instr);
+		add_instr(_m_builder.code_len() + 5 - 1);
+		add_instr(Instruction::iconst_0);
+		add_instr(Instruction::go);
+		add_instr(_m_builder.code_len() + 3 - 1);
+		add_instr(Instruction::iconst_1);
+		add_instr(Instruction::i2b);
+		lhs_t = CodeGen_B;
+	};
 	if (lhs_t == rhs_t)
 	{
 		switch (lhs_t)
 		{
 			case CodeGen_I: 
-				add_instr(tag_to_int_instr(ir->tag()));
+				{
+					switch (ir->tag())
+					{
+						case IRTag_Add: add_instr(Instruction::iadd); break;
+						case IRTag_Sub: add_instr(Instruction::isub); break;
+						case IRTag_Mul: add_instr(Instruction::imul); break;
+						case IRTag_Div: add_instr(Instruction::idiv); break;
+						case IRTag_Eq: gen_comp_code(Instruction::ifeq); break;
+						case IRTag_Lt: gen_comp_code(Instruction::iflt); break;
+						case IRTag_Le: gen_comp_code(Instruction::ifle); break;
+						case IRTag_Ge: gen_comp_code(Instruction::ifge); break;
+						case IRTag_Gt: gen_comp_code(Instruction::ifgt); break;
+						default: 
+							printf(">> not support tag type for %x when gen code for binop node", ir->tag());
+							throw std::exception("not support tag convert to instruction");
+					}
+				}
 				break;
 			case CodeGen_D: 
 				add_instr(tag_to_double_instr(ir->tag()));
@@ -464,9 +479,9 @@ IRNode* CodeGen::visit(IR_Id* id)
 	uint8_t local = local_for_name(id_str);
 	switch (t)
 	{
-	case CodeGen_D: add_instr(Instruction::dload); break;
-	case CodeGen_I: add_instr(Instruction::iload); break;
-	default: throw std::exception("not support type when gen code for id node");
+		case CodeGen_D: add_instr(Instruction::dload); break;
+		case CodeGen_I: add_instr(Instruction::iload); break;
+		default: throw std::exception("not support type when gen code for id node");
 	}
 	add_instr(local);
 	return id;
@@ -487,6 +502,11 @@ IRNode* CodeGen::visit(IR_Decl* decl)
 		add_instr(Instruction::dstore);
 		add_instr(local_for_name(name));
 		decl_variable(name, NodeDouble);
+		break;
+	case CodeGen_B:
+		add_instr(Instruction::bstore);
+		add_instr(local_for_name(name));
+		decl_variable(name, NodeBool);
 		break;
 	default: throw std::exception("encounter unsupported type when gen code for decl");
 	}

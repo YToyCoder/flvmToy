@@ -35,22 +35,22 @@ uint64_t hash_cstr(const char *p, size_t len){
 std::ostream& operator<<(std::ostream& stream, const FlTagValue& value)
 {
       switch(value.tag()){
-				case FlTagValue::IntTag:    stream << value.union_v()._int; break;
-				case FlTagValue::DoubleTag: stream << std::setprecision(10) <<(FlDouble) value.union_v()._double; break;
-				case FlTagValue::ObjTag:    stream << "obj"; break;
-				case FlTagValue::BoolTag:   stream << value.union_v()._bool; break;
-				case FlTagValue::CharTag:   stream << value.union_v()._char; break;
-				default:                    stream << "nil"; break;
+        case FlTagValue::IntTag:    stream << value.union_v()._int; break;
+        case FlTagValue::DoubleTag: stream << std::setprecision(10) <<(FlDouble) value.union_v()._double; break;
+        case FlTagValue::ObjTag:    stream << "obj"; break;
+        case FlTagValue::BoolTag:   stream << value.union_v()._bool; break;
+        case FlTagValue::CharTag:   stream << value.union_v()._char; break;
+        default:                    stream << "nil"; break;
       };
 
   return stream;
 }
 FlMethodBuilder::FlMethodBuilder()
 {
-	capability = 16;
-	len = 0;
-	max_stk = 0;
-	max_locals = 0;
+  capability = 16;
+  len = 0;
+  max_stk = 0;
+  max_locals = 0;
   code_cache = new instr_t[capability] ;// (instr_t*)malloc(sizeof(instr_t) * capability);
 // const pool
   k_cap = 8;
@@ -71,39 +71,39 @@ FlMethodBuilder::~FlMethodBuilder()
 
 void FlMethodBuilder::capability_check()
 {
-	if(len == capability){
-		size_t extend = 1.5 * capability < INT32_MAX ? 1.5 * capability : INT32_MAX;
+  if(len == capability){
+    size_t extend = 1.5 * capability < INT32_MAX ? 1.5 * capability : INT32_MAX;
     instr_t* new_area =new instr_t[extend] ; 
     if (new_area == NULL)
     {
       throw std::runtime_error("alloc memory failed when build method");
     }
-		for(int i=0; i<len && i<extend; i++){
-			new_area[i] = code_cache[i];
-		}
+    for(int i=0; i<len && i<extend; i++){
+      new_area[i] = code_cache[i];
+    }
     delete[] code_cache;
     capability = extend;
-		code_cache = new_area;
-	}
+    code_cache = new_area;
+  }
 }
 
 FlMethodBuilder* FlMethodBuilder::set_max_stk(size_t stk_deep)
 {
-	max_stk = stk_deep;
-	return this;
+  max_stk = stk_deep;
+  return this;
 }
 
 FlMethodBuilder* FlMethodBuilder::set_max_locals(size_t locals_size)
 {
-	max_locals = locals_size;
-	return this;
+  max_locals = locals_size;
+  return this;
 }
 
 FlMethodBuilder* FlMethodBuilder::append(instr_t instr)
 {
-	capability_check();
-	code_cache[len++] = instr;
-	return this;
+  capability_check();
+  code_cache[len++] = instr;
+  return this;
 }
 
 uint8_t FlMethodBuilder::store_const_int(FlInt _i)
@@ -124,14 +124,14 @@ uint8_t FlMethodBuilder::store_const_double(FlDouble _d)
 
 FlMethod* FlMethodBuilder::build()
 {
-	FlMethod *ret = new FlMethod();
-	ret->codes = new instr_t[len];
+  FlMethod *ret = new FlMethod();
+  ret->codes = new instr_t[len];
   for (int i = 0; i < len; i++) {
     ret->codes[i] = code_cache[i];
   }
-	ret->_max_locals = max_locals;
-	ret->_max_stk = max_stk;
-	ret->_code_len = this->len;
+  ret->_max_locals = max_locals;
+  ret->_max_stk = max_stk;
+  ret->_code_len = this->len;
 
   // consts
   ret->k = (FlTagValue *)malloc(sizeof(FlTagValue) * k_len);
@@ -140,8 +140,8 @@ FlMethod* FlMethodBuilder::build()
     ret->k[i] = k_cache[i];
   }
   ret->_k_len = k_len;
-	clear();
-	return ret;
+  clear();
+  return ret;
 }
 
 class FlStringConstPool 
@@ -197,103 +197,76 @@ inline std::string append_eq_util(const std::string& str, size_t n){
   return str + repeat(" ", n - str.size() - 1) + "=";
 }
 
+#define STR(content) #content
+#define Case_Print(instruction)                                   \
+  case Instruction::## instruction ##:                            \
+  printf( STR( %03d  %04x < ## instruction>\n), ic_record, instr); \
+  break;
+
+#define Case_Print_One_Param(instruction)                                   \
+  case Instruction::## instruction ##:                                      \
+  printf( STR( %03d  %04x < ## instruction ## > %03d \n), ic_record, instr , codes[instr_cursor++]); \
+  break;
+
 void FlMethod::to_string() const
 {
   size_t instr_cursor = 0;
   instr_t instr;
+  size_t ic_record;
   while (instr_cursor < _code_len)
   {
+    ic_record = instr_cursor;
     instr = codes[instr_cursor++];
     switch (instr)
     {
-		case Instruction::iconst_0: 
-      printf("%04x iconst_0\n", instr);
+    Case_Print(iconst_0)
+    Case_Print(iconst_1)
+    Case_Print(iconst_2)
+    Case_Print(iconst_3)
+    Case_Print(iconst_4)
+    Case_Print(dconst_1)
+    Case_Print(dconst_2)
+    case Instruction::ipush:    
+      printf("%03d %04x ipush %03d\n", ic_record, instr, sign_extend(codes[instr_cursor++]  << 8| codes[instr_cursor++]));
       break;
-		case Instruction::iconst_1: 
-      printf("%04x iconst_1\n", instr);
-      break;
-		case Instruction::iconst_2: 
-      printf("%04x iconst_2\n", instr);
-      break;
-		case Instruction::iconst_3: 
-      printf("%04x iconst_3\n", instr);
-      break;
-		case Instruction::iconst_4: 
-      printf("%04x iconst_4\n", instr);
-      break;
-		case Instruction::dconst_1:
-      printf("%04x dconst_1\n", instr);
-      break;
-		case Instruction::dconst_2:
-      printf("%04x dconst_2\n", instr);
-      break;
-		case Instruction::ipush:    
-      printf("%04x ipush %03d\n", instr, sign_extend(codes[instr_cursor++]  << 8| codes[instr_cursor++]));
-      break;
-    case Instruction::dpush:
-      printf("%04x dpush %03d\n", instr, codes[instr_cursor++]);
-      break;
-		case Instruction::iload:
-      printf("%04x ipush %03d\n", instr, codes[instr_cursor++]);
-      break;
-		case Instruction::dload:
-      printf("%04x dload %03d\n", instr, codes[instr_cursor++]);
-      break;
+    Case_Print_One_Param(dpush)
+    Case_Print_One_Param(iload)
+    Case_Print_One_Param(dload)
 
-		case Instruction::iadd: 
-      printf("%04x iadd \n", instr);
-      break;
-		case Instruction::dadd: 
-      printf("%04x dadd \n", instr);
-      break;
-		case Instruction::isub: 
-      printf("%04x isub \n", instr);
-      break;
-		case Instruction::dsub: 
-      printf("%04x dsub \n", instr);
-      break;
-		case Instruction::imul: 
-      printf("%04x imul \n", instr);
-      break;
-		case Instruction::dmul: 
-      printf("%04x dmul \n", instr);
-      break;
-		case Instruction::idiv: 
-      printf("%04x idiv \n", instr);
-      break;
-		case Instruction::ddiv: 
-      printf("%04x ddiv \n", instr);
-      break;
+    Case_Print(iadd)
+    Case_Print(dadd)
+    Case_Print(isub)
+    Case_Print(dsub)
+    Case_Print(imul)
+    Case_Print(dmul)
+    Case_Print(idiv)
+    Case_Print(ddiv)
     case Instruction::ldci: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%04x ldci %03d ", instr, const_loc);
+      printf("%03d %04x ldci %03d ", ic_record, instr, const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
     case Instruction::ldcd: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%04x ldcd %03d ", instr, const_loc);
+      printf("%03d %04x ldcd %03d ", ic_record, instr, const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
-    case Instruction::i2d:
-      printf("%04x i2d \n", instr);
-      break;
-    case Instruction::i2b:
-      printf("%04x i2b \n", instr);
-      break;
-    case Instruction::d2i:
-      printf("%04x d2i \n", instr);
-      break;
-    case Instruction::istore: 
-      printf("%04x istore %03d\n", instr, codes[instr_cursor++]);
-      break;
-    case Instruction::dstore: 
-      printf("%04x dstore %03d\n", instr, codes[instr_cursor++]);
-      break;
-
+    Case_Print(i2d)
+    Case_Print(i2b)
+    Case_Print(d2i)
+    Case_Print_One_Param(istore)
+    Case_Print_One_Param(dstore)
+    Case_Print_One_Param(bstore)
+    Case_Print_One_Param(ifeq)
+    Case_Print_One_Param(iflt)
+    Case_Print_One_Param(ifle)
+    Case_Print_One_Param(ifgt)
+    Case_Print_One_Param(ifge)
+    Case_Print_One_Param(go)
     default:
       throw std::exception("not support instruction when code to string");
     }
@@ -302,29 +275,29 @@ void FlMethod::to_string() const
 
 void FlFrame::init()
 {
-	// pc
-	pc = current_exec->codes;
-	// locals
-	const size_t max_locals = current_exec->max_locals();
-	locals = (FlTagValue *) malloc(sizeof(FlTagValue) * max_locals);
-	for(int i=0; i< max_locals; i++){
-		locals[i]._tag = FlTagValue::UnInit;
-	}
-	// stk
-	const size_t max_stk = current_exec->max_stk();
-	stk_base = (FlTagValue *) malloc(sizeof(FlTagValue) * max_stk);
-	stk_top = stk_base + max_stk;
-	stkp = stk_base;
-	for(FlTagValue *i=stk_base; i<stk_top; i++){
-		i->_tag = FlTagValue::UnInit;
-	}
+  // pc
+  pc = current_exec->codes;
+  // locals
+  const size_t max_locals = current_exec->max_locals();
+  locals = (FlTagValue *) malloc(sizeof(FlTagValue) * max_locals);
+  for(int i=0; i< max_locals; i++){
+    locals[i]._tag = FlTagValue::UnInit;
+  }
+  // stk
+  const size_t max_stk = current_exec->max_stk();
+  stk_base = (FlTagValue *) malloc(sizeof(FlTagValue) * max_stk);
+  stk_top = stk_base + max_stk;
+  stkp = stk_base;
+  for(FlTagValue *i=stk_base; i<stk_top; i++){
+    i->_tag = FlTagValue::UnInit;
+  }
 }
 
 void FlFrame::stkp_out_of_index_check()
 {
-	if(stkp < stk_base || stkp >= stk_top){
-		exit(1);
-	}
+  if(stkp < stk_base || stkp >= stk_top){
+    exit(1);
+  }
 }
 
 void append(std::stringstream& stream, size_t max_len)
@@ -341,12 +314,12 @@ void FlFrame::print_frame()
 {
     printf("**********************frame data****************************\n");
     printf("** stk: ");
-		for(FlTagValue *i=stk_base; i<stk_top; i++){
+    for(FlTagValue *i=stk_base; i<stk_top; i++){
       if (i < stkp) std::cout << "[" << *i << "] ";
       else std::cout << *i << " ";
-		}
+    }
     printf("\n** locals: ");
-		for(int i=0; i<current_exec->max_locals(); i++)
+    for(int i=0; i<current_exec->max_locals(); i++)
         std::cout << locals[i] << " ";
     printf("\n** const: ");
     for (int i = 0; i < current_exec->_k_len; i++)
@@ -364,24 +337,24 @@ FlInt sign_extend(uint16_t v){
 
 void FlSExec::dispatch(instr_t instr)
 {
-	switch(instr){
-		case Instruction::iconst_0: _iconst_0(); break;
-		case Instruction::iconst_1: _iconst_1(); break;
-		case Instruction::iconst_2: _iconst_2(); break;
-		case Instruction::iconst_3: _iconst_3(); break;
-		case Instruction::iconst_4: _iconst_4(); break;
-		case Instruction::dconst_1:
-			_m_frame->pushd(1.0);
-			break;
-		case Instruction::dconst_2:
-			_m_frame->pushd(2.0);
-			break;
-		case Instruction::ipush:    _ipush()   ; break;
+  switch(instr){
+    case Instruction::iconst_0: _iconst_0(); break;
+    case Instruction::iconst_1: _iconst_1(); break;
+    case Instruction::iconst_2: _iconst_2(); break;
+    case Instruction::iconst_3: _iconst_3(); break;
+    case Instruction::iconst_4: _iconst_4(); break;
+    case Instruction::dconst_1:
+      _m_frame->pushd(1.0);
+      break;
+    case Instruction::dconst_2:
+      _m_frame->pushd(2.0);
+      break;
+    case Instruction::ipush:    _ipush()   ; break;
     case Instruction::dpush:    _dpush()   ; break;
-		case Instruction::iload:    _iload()   ; break;
-		case Instruction::dload:
-			_m_frame->loadd(_m_frame->popd(), read_instr());
-			break;
+    case Instruction::iload:    _iload()   ; break;
+    case Instruction::dload:
+      _m_frame->loadd(_m_frame->popd(), read_instr());
+      break;
     case Instruction::istore: 
       _m_frame->storei(_m_frame->popi(), read_instr()); 
       break;
@@ -389,14 +362,14 @@ void FlSExec::dispatch(instr_t instr)
       _m_frame->stored(_m_frame->popd(), read_instr()); 
       break;
 
-		case Instruction::iadd: _m_frame->iadd(); break;
-		case Instruction::dadd: _m_frame->dadd(); break;
-		case Instruction::isub: _m_frame->isub(); break;
-		case Instruction::dsub: _m_frame->dsub(); break;
-		case Instruction::imul: _m_frame->imul(); break;
-		case Instruction::dmul: _m_frame->dmul(); break;
-		case Instruction::idiv: _m_frame->idiv(); break;
-		case Instruction::ddiv: _m_frame->ddiv(); break;
+    case Instruction::iadd: _m_frame->iadd(); break;
+    case Instruction::dadd: _m_frame->dadd(); break;
+    case Instruction::isub: _m_frame->isub(); break;
+    case Instruction::dsub: _m_frame->dsub(); break;
+    case Instruction::imul: _m_frame->imul(); break;
+    case Instruction::dmul: _m_frame->dmul(); break;
+    case Instruction::idiv: _m_frame->idiv(); break;
+    case Instruction::ddiv: _m_frame->ddiv(); break;
     case Instruction::ldci: _m_frame->ldci(read_instr()); break;
     case Instruction::ldcd: _m_frame->ldcd(read_instr()); break;
     case Instruction::i2d:
@@ -409,12 +382,12 @@ void FlSExec::dispatch(instr_t instr)
       _m_frame->pushi(_m_frame->popd());
       break;
 
-		default:
-			throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
-	};
+    default:
+      throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
+  };
 #if 1
   printf("exec instr %x\n", instr);
-	_m_frame->print_frame();
+  _m_frame->print_frame();
 #endif
 };
 

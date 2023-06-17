@@ -19,20 +19,22 @@ uint64_t hash_cstr(const char *p, size_t len);
 
 struct Instruction {
   enum Code: uint8_t {
-    iconst_0 = 0x00,
-    iconst_1 = 0x01,
-    iconst_2 = 0x02,
-    iconst_3 = 0x03,
-    iconst_4 = 0x04,
-    dconst_1 = 0x05,
-    dconst_2 = 0x06,
-    ipush    = 0x07,
-    dpush    = 0x08,
-    iload    = 0x09,
-    dload    = 0x0A,
-    aload    = 0x0B,
-    istore   = 0x0C,
-    dstore   = 0x0D,
+    nop      = 0x00, // do nothing
+    iconst_0 = 0x01,
+    iconst_1 = 0x02,
+    iconst_2 = 0x03,
+    iconst_3 = 0x04,
+    iconst_4 = 0x05,
+    dconst_1 = 0x06,
+    dconst_2 = 0x07,
+    ipush    = 0x08,
+    dpush    = 0x09,
+    iload    = 0x0A,
+    dload    = 0x0B,
+    aload    = 0x0C,
+    istore   = 0x0D,
+    dstore   = 0x0E,
+    bstore   = 0x0F,
     ldci     = 0x11, // load int from consts
     ldcd     = 0x12, // load double from consts
 
@@ -45,6 +47,14 @@ struct Instruction {
     dmul     = 0x26,
     idiv     = 0x27,
     ddiv     = 0x28,
+
+    // int comp
+    ifeq     = 0x29,
+    iflt     = 0x2A,
+    ifle     = 0x2B,
+    ifgt     = 0x2C,
+    ifge     = 0x2D,
+    go       = 0x2E,
 
     // cast
     i2d      = 0x30, // int to double
@@ -287,6 +297,7 @@ public:
   FlMethodBuilder* set_max_stk(size_t stk_deep);
   FlMethodBuilder* set_max_locals(size_t locals_size);
   FlMethod* build();
+  inline size_t code_len() const { return len; }
 
   void clear()
   {
