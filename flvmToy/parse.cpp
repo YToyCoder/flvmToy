@@ -423,13 +423,18 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 	auto&& gen_comp_code = [&](Instruction::Code instr)
 	{
 		add_instr(Instruction::isub);
+		push_t(rhs_t);
 		add_instr(instr);
+		pop_t();
 		add_instr(_m_builder.code_len() + 5 - 1);
 		add_instr(Instruction::iconst_0);
+		push_t(CodeGen_I);
 		add_instr(Instruction::go);
 		add_instr(_m_builder.code_len() + 3 - 1);
 		add_instr(Instruction::iconst_1);
 		add_instr(Instruction::i2b);
+		pop_t();
+		push_t(CodeGen_B);
 		lhs_t = CodeGen_B;
 	};
 	if (lhs_t == rhs_t)

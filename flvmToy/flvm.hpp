@@ -63,6 +63,13 @@ struct Instruction {
   };
 };
 
+extern const char* instr_map[256];
+
+#define InstrNameDefine(instr) \
+  instr_map[(uint8_t)Instruction:: ## instr] = #instr
+
+void set_instr_map();
+const char* instr_name(Instruction::Code instr);
 // instruction type : 1 byte
 typedef uint8_t instr_t;
 // vm types
@@ -202,10 +209,11 @@ public:
     void pushd(FlDouble v){ stkp->set(v); stkp++; }
     void pushb(FlBool v)  { stkp->set(v); stkp++; }
     void pushi(FlInt v)   { stkp->set(v); stkp++; }
-    void loadi(FlInt v, size_t loc) { pushi(locals[loc]._int()); }
-    void loadd(FlDouble v, size_t loc) { pushd(locals[loc]._double()); }
+    void loadi(size_t loc) { pushi(locals[loc]._int()); }
+    void loadd( size_t loc) { pushd(locals[loc]._double()); }
     void storei(FlInt i, size_t loc) { locals[loc].set(i); }
     void stored(FlDouble i, size_t loc) { locals[loc].set(i); }
+    void storeb(FlBool i, size_t loc) { locals[loc].set(i); }
 
     void iadd() { pushi(popi() + popi()); }
     void dadd() { pushd(popd() + popd()); }
@@ -216,21 +224,29 @@ public:
     void isub() { FlInt i = popi(); pushi(popi() - i); }
     void dsub() { FlDouble d = popd(); pushd(popd() - d); }
 
-    FlInt popi() { stkp--; return stkp->_int(); }
-    FlBool popb(){ stkp--; return stkp->_bool();}
-    FlDouble popd() { return (--stkp)->_double(); }
+    FlInt popi() { pop_check(); stkp--; return stkp->_int(); }
+    FlBool popb(){ pop_check();stkp--; return stkp->_bool();}
+    FlDouble popd() {pop_check(); return (--stkp)->_double(); }
 
     void ldci(uint8_t k_loc) { pushi(current_exec->k[k_loc]._int());    }
     void ldcd(uint8_t k_loc) { pushd(current_exec->k[k_loc]._double()); }
+    void set_pc(uint8_t offset) { pc = current_exec->codes + offset; }
 
 public:
-    void print_frame();
+    void print_frame(int32_t instr);
     void init();
     void setLast(FlFrame *frame){ this->last = frame; }
     bool end_of_pc() { return (current_exec->codes + current_exec->_code_len) <= pc; }
 
 private:  
   inline void stkp_out_of_index_check();
+  inline void pop_check()
+  {
+    if(stkp == stk_base)
+    {
+      printf("stk break\n");
+    }
+  }
 
   FlFrame *last;
   FlMethod *current_exec;
@@ -273,7 +289,7 @@ protected:
   inline void _iconst_2(){ _m_frame->pushi(2); }
   inline void _iconst_3(){ _m_frame->pushi(3); }
   inline void _iconst_4(){ _m_frame->pushi(4); }
-  inline void _iload() { _m_frame->loadi(_m_frame->popi(), read_instr());}
+  inline void _iload() { _m_frame->loadi(read_instr());}
   inline void _dpush() { _m_frame->pushd(read_instr()); }
   inline void _ipush() { 
     FlInt v = sign_extend(read_instr() | read_instr() << 8 );

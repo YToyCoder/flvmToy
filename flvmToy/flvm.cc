@@ -23,6 +23,53 @@ void COLOR_PRINT(const char* s, int color)
 #endif
 }
 
+// ****************** instruction map *******************
+const char * instr_map[256];
+
+const char* instr_name(Instruction::Code instr)
+{
+  return instr_map[instr];
+}
+
+void set_instr_map()
+{
+  InstrNameDefine(nop);
+  InstrNameDefine(iconst_0);
+  InstrNameDefine(iconst_1);
+  InstrNameDefine(iconst_2);
+  InstrNameDefine(iconst_3);
+  InstrNameDefine(iconst_4);
+  InstrNameDefine(dconst_1);
+  InstrNameDefine(dconst_2);
+  InstrNameDefine(ipush);
+  InstrNameDefine(dpush);
+  InstrNameDefine(iload);
+  InstrNameDefine(dload);
+  InstrNameDefine(aload);
+  InstrNameDefine(istore);
+  InstrNameDefine(dstore);
+  InstrNameDefine(bstore);
+  InstrNameDefine(ldci);
+  InstrNameDefine(ldcd);
+  InstrNameDefine(iadd);
+  InstrNameDefine(dadd);
+  InstrNameDefine(isub);
+  InstrNameDefine(dsub);
+  InstrNameDefine(imul);
+  InstrNameDefine(dmul);
+  InstrNameDefine(idiv);
+  InstrNameDefine(ddiv);
+  InstrNameDefine(ifeq);
+  InstrNameDefine(iflt);
+  InstrNameDefine(ifle);
+  InstrNameDefine(ifgt);
+  InstrNameDefine(ifge);
+  InstrNameDefine(go);
+  InstrNameDefine(i2d);
+  InstrNameDefine(i2b);
+  InstrNameDefine(d2i);
+}
+
 
 const time_t hash_seed = time(nullptr);
 
@@ -227,7 +274,7 @@ void FlMethod::to_string() const
     Case_Print(dconst_1)
     Case_Print(dconst_2)
     case Instruction::ipush:    
-      printf("%03d %04x ipush %03d\n", ic_record, instr, sign_extend(codes[instr_cursor++]  << 8| codes[instr_cursor++]));
+      printf("%03d %04x ipush %03d\n", ic_record, instr, sign_extend(codes[instr_cursor++] << 8 | codes[instr_cursor++]));
       break;
     Case_Print_One_Param(dpush)
     Case_Print_One_Param(iload)
@@ -310,9 +357,10 @@ void append(std::stringstream& stream, size_t max_len)
   stream << "=";
 }
 //#define CPrint
-void FlFrame::print_frame()
+void FlFrame::print_frame(int32_t instr)
 {
     printf("**********************frame data****************************\n");
+    printf("** instr: %03x %s\n", instr, instr_name((Instruction::Code)instr));
     printf("** stk: ");
     for(FlTagValue *i=stk_base; i<stk_top; i++){
       if (i < stkp) std::cout << "[" << *i << "] ";
@@ -338,6 +386,7 @@ FlInt sign_extend(uint16_t v){
 void FlSExec::dispatch(instr_t instr)
 {
   switch(instr){
+    case Instruction::nop:                   break;
     case Instruction::iconst_0: _iconst_0(); break;
     case Instruction::iconst_1: _iconst_1(); break;
     case Instruction::iconst_2: _iconst_2(); break;
@@ -353,13 +402,16 @@ void FlSExec::dispatch(instr_t instr)
     case Instruction::dpush:    _dpush()   ; break;
     case Instruction::iload:    _iload()   ; break;
     case Instruction::dload:
-      _m_frame->loadd(_m_frame->popd(), read_instr());
+      _m_frame->loadd(read_instr());
       break;
     case Instruction::istore: 
       _m_frame->storei(_m_frame->popi(), read_instr()); 
       break;
     case Instruction::dstore: 
       _m_frame->stored(_m_frame->popd(), read_instr()); 
+      break;
+    case Instruction::bstore: 
+      _m_frame->storeb(_m_frame->popb(), read_instr()); 
       break;
 
     case Instruction::iadd: _m_frame->iadd(); break;
@@ -382,12 +434,26 @@ void FlSExec::dispatch(instr_t instr)
       _m_frame->pushi(_m_frame->popd());
       break;
 
+#define Case_Comp(instruction, op) \
+    case Instruction:: ##instruction : {              \
+      FlInt top_int = _m_frame->popi();               \
+      uint8_t jump_offset = read_instr();             \
+      if(top_int op 0) _m_frame->set_pc(jump_offset); \
+    }                                                 \
+    break;
+
+    Case_Comp(ifeq, ==)
+    Case_Comp(iflt, <)
+    Case_Comp(ifle, <=)
+    Case_Comp(ifgt, >)
+    Case_Comp(ifge, >=)
+    case Instruction::go: _m_frame->set_pc(read_instr()); break;
+
     default:
       throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
   };
 #if 1
-  printf("exec instr %x\n", instr);
-  _m_frame->print_frame();
+  _m_frame->print_frame(instr);
 #endif
 };
 
@@ -405,7 +471,7 @@ class FlExec {
     current_frame->pushi(v);
   }
 
-  void _iload() { current_frame->loadi(current_frame->popi(), read_instr());}
+  void _iload() { current_frame->loadi(read_instr());}
   public:
     FlExec *setBase(FlFrame *frame){
       base_frame = frame;
@@ -434,7 +500,7 @@ class FlExec {
         case Instruction::ipush:    _ipush()   ; break;
         case Instruction::iload:    _iload()   ; break;
         case Instruction::dload:
-          current_frame->loadd(current_frame->popd(), read_instr());
+          current_frame->loadd(read_instr());
           break;
       };
 #ifdef FlvmDebug
