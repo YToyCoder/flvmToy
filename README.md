@@ -5,37 +5,48 @@ a virtual machine
 ### 1. instruction 字节码
 flvm is a stack based vm, it support instruction as follow:
 ```
-  iconst_0 = 0x00,
-  iconst_1 = 0x01,
-  iconst_2 = 0x02,
-  iconst_3 = 0x03,
-  iconst_4 = 0x04,
-  dconst_1 = 0x05,
-  dconst_2 = 0x06,
-  ipush    = 0x07,
-  dpush    = 0x08,
-  iload    = 0x09,
-  dload    = 0x0A,
-  aload    = 0x0B,
-  istore   = 0x0C,
-  dstore   = 0x0D,
-  ldci     = 0x11, // load int from consts
-  ldcd     = 0x12, // load double from consts
+    nop      = 0x00, // do nothing
+    iconst_0 = 0x01,
+    iconst_1 = 0x02,
+    iconst_2 = 0x03,
+    iconst_3 = 0x04,
+    iconst_4 = 0x05,
+    dconst_1 = 0x06,
+    dconst_2 = 0x07,
+    ipush    = 0x08,
+    dpush    = 0x09,
+    iload    = 0x0A,
+    dload    = 0x0B,
+    aload    = 0x0C,
+    istore   = 0x0D,
+    dstore   = 0x0E,
+    bstore   = 0x0F,
+    ldci     = 0x11, // load int from consts
+    ldcd     = 0x12, // load double from consts
 
-  // operator
-  iadd     = 0x21,
-  dadd     = 0x22,
-  isub     = 0x23,
-  dsub     = 0x24,
-  imul     = 0x25,
-  dmul     = 0x26,
-  idiv     = 0x27,
-  ddiv     = 0x28,
+    // operator
+    iadd     = 0x21,
+    dadd     = 0x22,
+    isub     = 0x23,
+    dsub     = 0x24,
+    imul     = 0x25,
+    dmul     = 0x26,
+    idiv     = 0x27,
+    ddiv     = 0x28,
 
-  // cast
-  i2d      = 0x30, // int to double
-  i2b      = 0x31, // int to boolean
-  d2i      = 0x32, // double to int
+    // int comp
+    ifeq     = 0x29,
+    iflt     = 0x2A,
+    ifle     = 0x2B,
+    ifgt     = 0x2C,
+    ifge     = 0x2D,
+    go       = 0x2E,
+    dcmp     = 0x2F,
+
+    // cast
+    i2d      = 0x30, // int to double
+    i2b      = 0x31, // int to boolean
+    d2i      = 0x32, // double to int
 ```
 
 the runtime instruction code example:
@@ -54,6 +65,17 @@ the runtime instruction code example:
 #### 2.2 example 示例
 
 ```
-let a = 2.2 * 3 - (5  * 10.0 / 2)
-let b = a - 8 * 0.8
+let id = 1.2 + 3 * 2.1 - 4 + 2.1 
+let a = 0 + id * ( 2 * 7 - 4.4 )
+let b = 1 - 2 > 3 - 9
+let c = 1.24 < 2.34
+if 3 < 2
+{
+  let m = 1
+}
+else if 3 == 3
+{
+  let f = 2
+  let ss = 1.2 + a
+}
 ```
