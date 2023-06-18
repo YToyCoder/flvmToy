@@ -167,11 +167,12 @@ token_t Lex::alphabetic_start_token() {
 	std::cout << "read token str " << str << std::endl;
 #endif
 	save_token_str(token_start, str);
-	if (str == "let")
-	{
-		return create_token(TokLet, token_start, m_file_offset - token_start);
-	}
-	return create_token(TokId, token_start, m_file_offset - token_start);
+	TokenKind tk ;
+	if (str == "let") tk =TokLet;
+	else if(str == "if") tk = TokIf;
+	else if(str == "else") tk = TokElse;
+	else tk = TokId;
+	return create_token(tk, token_start, m_file_offset - token_start);
 }
 
 unistr_t Lex::token_string(token_t tok)

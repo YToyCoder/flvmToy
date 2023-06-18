@@ -291,6 +291,12 @@ IRNode* TypeConvert::visit(IR_Block* block)
   return block;
 }
 
+// TODO:?
+IRNode* TypeConvert::visit(IR_If* stmt_if)
+{
+  return stmt_if;
+}
+
 void CodeGen::build(IRNode* ir)
 {
   if (ir == nullptr) {
@@ -512,6 +518,11 @@ IRNode* CodeGen::visit(IR_Decl* decl)
   default: throw std::exception("encounter unsupported type when gen code for decl");
   }
   return decl;
+}
+
+IRNode* CodeGen::visit(IR_If* stmt_if)
+{
+  return stmt_if;
 }
 
 sptr_t<FlMethod> CodeGen::get_method()

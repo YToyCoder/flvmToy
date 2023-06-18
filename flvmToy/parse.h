@@ -49,7 +49,7 @@ enum CodeGenType
 {
 	CodeGen_I, // int
 	CodeGen_D, // double
-	CodeGen_B, // 
+	CodeGen_B, // bool ? byte
 };
 
 inline CodeGenType better_type(CodeGenType ta, CodeGenType tb)

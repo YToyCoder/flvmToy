@@ -45,6 +45,7 @@ void do_test()
 #endif
 
 int main(int argc, char** argv) {
+	printf("%d \n", __cplusplus);
 	set_instr_map();
 	DO_TEST;
 	return 0;
