@@ -20,6 +20,8 @@ std::string tk_to_str(token_t tok) {
 	case TokLe:			return "le";
 	case TokGt:			return "gt";
 	case TokGe:			return "ge";
+	case TokIf: 		return "if";
+	case TokElse: 	return "else";
 	default:				return "?";
 	}
 }
