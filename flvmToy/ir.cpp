@@ -45,20 +45,32 @@ IRNode* IR_Decl::accept(IRVisitor& visitor)
 	return visitor.visit(set_init(m_init->accept(visitor)));
 }
 
-IR_Decl* IR_Decl::set_init(IRNode* _init)
-{
-	if (_init == m_init.get())
-		return this;
-	auto copy = new IR_Decl(*this);
-	copy->m_init = sptr_t<IRNode>(_init);
-	return copy;
-}
+IrNode_Set_Method_Impl(Decl, init)
 
 IRNode* IR_Block::accept(IRVisitor& visitor)
 {
 	return visitor.visit(proc_ls(visitor));
 }
 
+// *********************************** IR_If *********************************
+
+IrNode_Set_Method_Impl(If, test)
+IrNode_Set_Method_Impl(If, success)
+IrNode_Set_Method_Impl(If, failed)
+
+IRNode* IR_If::accept(IRVisitor& visitor)
+{
+	auto node = this;
+	// nullptr ??
+	node = node->set_test(node->m_test->accept(visitor));
+	node = node->set_success(node->m_success->accept(visitor));
+	if(node && node->m_failed){
+		node = node->set_failed(node->m_failed->accept(visitor));
+	}
+	return node == nullptr ? this : node;
+}
+
+// *********************************** IR_STRING ******************************
 std::string IR_String::stringify(IRNode* ir)
 {
 	ir->accept(*this);
@@ -133,4 +145,10 @@ IRNode* IR_String::visit(IR_Block* block)
 		_m_ss << "}" << std::endl;
 	}
 	return block;
+}
+
+// TODO:?
+IRNode* IR_String::visit(IR_If* stmt_if)
+{
+	return stmt_if;
 }
