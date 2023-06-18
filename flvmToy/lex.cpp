@@ -90,6 +90,8 @@ token_t Lex::fetch_token() {
 			case '=': return one_or_two_token(TokAssign, std::make_pair(TokEq,'='));
 			case '(': return one_char_token(TokLParent);
 			case ')': return one_char_token(TokRParent);
+			case '{': return one_char_token(TokLBrace);
+			case '}': return one_char_token(TokRBrace);
 			case '<': return one_or_two_token(TokLt, std::make_pair(TokLe, '='));
 			case '>': return one_or_two_token(TokGt, std::make_pair(TokGe, '='));
 		}

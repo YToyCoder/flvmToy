@@ -52,7 +52,7 @@ protected:
 		return tok;
 	}
 
-	inline token_t one_or_two_token(TokenKind _one_char_kind, std::pair<TokenKind,UChar> kind_and_char)
+	inline token_t one_or_two_token(TokenKind _one_char_kind, const std::pair<TokenKind,UChar>& kind_and_char)
 	{
 		unistr_t str;
 		uint32_t pos_record = m_file_offset;

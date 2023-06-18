@@ -33,7 +33,19 @@ token_t Parser::next_tok()
 
 token_t Parser::next_tok_must(TokenKind tk)
 {
-  token_t t = next_tok();
+  token_t&& t = next_tok();
+  //printf("next token is => %s\n", token_to_str(t).c_str());
+  if (!token_is_kind(t, tk))
+  {
+    std::cout << token_to_str(t) << std::endl;
+    throw std::exception("token is not expected kind");
+  }
+  return t;
+}
+
+token_t Parser::eat(TokenKind tk)
+{
+  token_t&& t = next_tok();
   if (!token_is_kind(t, tk))
   {
     std::cout << token_to_str(t) << std::endl;
@@ -46,6 +58,13 @@ bool Parser::has_tok()
 {
   return !_m_tok_cache.empty() || _m_lex.has_token();
 }
+
+void Parser::ignore_empty_line()
+{
+  while(has_tok() && token_is_kind(token(), TokEol))
+    next_tok();
+}
+// ************************* parsing *****************************
 
 IRNode* Parser::parse()
 {
@@ -74,13 +93,13 @@ IRNode* Parser::parsing_num()
 
 IRNode* Parser::parsing_id()
 {
-  token_t t = next_tok();
+  token_t&& t = next_tok();
   return new IR_Id(t, tok_foffset(t), tok_end(t));
 }
 
 IRNode* Parser::parsing_one()
 {
-  TokenKind tk = token_kind(token());
+  TokenKind&& tk = token_kind(token());
   switch (tk)
   {
   case TokId:
@@ -91,7 +110,7 @@ IRNode* Parser::parsing_one()
   case TokLParent:
   {
     next_tok();
-    IRNode* expression = parsing_add();
+    IRNode* expression = parsing_comp();
     next_tok_must(TokRParent);
     return expression;
   }
@@ -189,22 +208,73 @@ IRNode* Parser::parsing_one_line()
   switch (token_kind(token()))
   {
     case TokLet:	return parsing_decl();
-    default:			return parsing_add();
+    default:			return parsing_comp();
   }
 }
 
 IRNode* Parser::parsing_block()
 {
   IR_Block::state_list_t ls;
-  token_t start_token = token();
-  while (has_tok()) {
-    ls.push_back(sptr_t<IRNode>(parsing_one_line()));
-    if (has_tok() && token_is_kind(token(), TokEol))
-      next_tok();
+  token_t&& start_token = token();
+  ignore_empty_line();
+  while (has_tok() && !token_is_kind(token(), TokRBrace)) {
+    ls.push_back(sptr_t<IRNode>(parsing_stmt()));
+    if (has_tok()) eat(TokEol); // every line expression end with TokEol
+    ignore_empty_line();
   }
-  return new IR_Block(start_token, tok_end(start_token), ls);
+  return new IR_Block(start_token, _m_lex.cur_pos(), ls);
+}
+IRNode* Parser::parsing_braced_block()
+{
+  token_t t = eat(TokLBrace);
+  ignore_empty_line();
+  if (token_is_kind(token(), TokRBrace)) {
+    eat(TokRBrace);
+    return new IR_Block(t, _m_lex.cur_pos(), {});
+  }
+  IRNode*&& block = parsing_block();
+  ignore_empty_line();
+  eat(TokRBrace);
+  return block;
 }
 
+IRNode* Parser::parsing_stmt_if()
+{
+  token_t&& stmt_if_token = eat(TokIf);
+  ignore_empty_line();
+  IRNode* test = parsing_comp();
+  ignore_empty_line();
+  IRNode* success = parsing_braced_block();
+  ignore_empty_line();
+  if(!token_is_kind(token(), TokElse)) {
+    return new IR_If(stmt_if_token, _m_lex.cur_pos(), test, success);
+  }
+  eat(TokElse);
+  ignore_empty_line();
+  auto&& parsing_else = [this]() {
+    switch(token_kind(token()))
+    {
+      case TokIf: return parsing_stmt_if();
+      default:    return parsing_braced_block();
+    }
+  };
+  IRNode* failed = parsing_else();
+  return new IR_If(stmt_if_token, _m_lex.cur_pos(), test, success, failed);
+}
+
+IRNode* Parser::parsing_stmt()
+{
+  TokenKind tk = token_kind(token());
+  switch((tk)) {
+    case TokLet: return parsing_decl();
+    case TokIf:  return parsing_stmt_if();
+    default: 
+      printf("not support stmt that start with %03x %s\n", tk, tk_to_str(tk).c_str());
+      throw std::exception();
+  }
+}
+
+//************************** TypeConvert ***********************
 IRNode* TypeConvert::convert(IRNode* ir)
 {
   if (nullptr == ir) return ir;
@@ -226,23 +296,22 @@ IRNode* TypeConvert::visit(IR_BinOp* ir)
 {
   CodeGenType rhs_t = pop_t();
   CodeGenType lhs_t = pop_t();
-  CodeGenType after_operation_type = lhs_t;
-  IR_BinOp* result_ir = ir;
   if (lhs_t != rhs_t) {
-    after_operation_type = better_type(lhs_t, rhs_t);
-    if (after_operation_type == lhs_t) {
+    CodeGenType t = better_type(lhs_t, rhs_t);
+		push_t(t);
+    if (t == lhs_t) {
       IRNode* irRHS = ir->rhs();
       IRNode* rhs = new IR_Cast(irRHS->end_loc(), irRHS, NodeDouble);
-      result_ir = new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), ir->lhs(), rhs);
+      return new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), ir->lhs(), rhs);
     }
     else {
       IRNode* irLHS = ir->lhs();
       IRNode* lhs = new IR_Cast(irLHS->end_loc(), irLHS, NodeDouble);
-      result_ir = new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), lhs, ir->rhs());
+      return new IR_BinOp(ir->token(), ir->end_loc(), ir->tag(), lhs, ir->rhs());
     }
   }
-  push_t(after_operation_type);
-  return result_ir;
+  push_t(lhs_t);
+  return ir;
 }
 
 IRNode* TypeConvert::visit(IR_Cast* cast) 
@@ -266,7 +335,6 @@ IRNode* TypeConvert::visit(IR_Id* id)
 
 IRNode* TypeConvert::visit(IR_Decl* decl)
 {
-  decl->init()->accept(*this);
   //std::cout << "decl " << decl->id() << std::endl;
   switch (pop_t())
   {
@@ -297,6 +365,7 @@ IRNode* TypeConvert::visit(IR_If* stmt_if)
   return stmt_if;
 }
 
+// ******************************* CodeGen ********************************
 void CodeGen::build(IRNode* ir)
 {
   if (ir == nullptr) {
@@ -308,6 +377,10 @@ void CodeGen::build(IRNode* ir)
 
 IRNode* CodeGen::visit(IR_Block* block)
 {
+  for(auto it : block->list())
+  {
+    it->accept(*this);
+  }
   return block;
 }
 
@@ -321,6 +394,7 @@ IRNode* CodeGen::visit(IR_Num* num)
 
 IRNode* CodeGen::visit(IR_Cast* cast)
 {
+  cast->cast_from()->accept(*this);
   CodeGenType from_t = pop_t();
   switch (from_t) 
   {
@@ -401,6 +475,8 @@ CodeGenType CodeGen::gen_num(IR_Num * ir) // -> CodeGenType
 
 IRNode* CodeGen::visit(IR_BinOp* ir)
 {
+  ir->lhs()->accept(*this);
+  ir->rhs()->accept(*this);
   push_t(gen_bin(ir));
   return ir;
 }
@@ -474,6 +550,7 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
   {
     // shouldn't reach here 
     printf("binary two side type is not equal\n");
+    throw std::exception();
   }
 }
 
@@ -496,6 +573,7 @@ IRNode* CodeGen::visit(IR_Id* id)
 
 IRNode* CodeGen::visit(IR_Decl* decl)
 {
+  decl->init()->accept(*this);
   CodeGenType t = pop_t();
   unistr_t name = decl->id();
   switch (t)
@@ -522,6 +600,20 @@ IRNode* CodeGen::visit(IR_Decl* decl)
 
 IRNode* CodeGen::visit(IR_If* stmt_if)
 {
+  stmt_if->test()->accept(*this);
+  add_instr(Instruction::ifeq);
+  size_t failed_replace_flag = add_instr(0);
+  stmt_if->success()->accept(*this);
+  if(stmt_if->has_failed()) {
+		auto&& failed = stmt_if->failed();
+    add_instr(Instruction::go);
+    size_t jump_failed_flag = add_instr(0);
+    replace_instr(failed_replace_flag, _m_builder.code_len());
+    failed->accept(*this);
+    replace_instr(jump_failed_flag, _m_builder.code_len());
+  }else {
+    replace_instr(failed_replace_flag, _m_builder.code_len());
+  }
   return stmt_if;
 }
 

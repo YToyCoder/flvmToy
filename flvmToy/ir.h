@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <ranges>
+#include "unicode/ustream.h"
 
 enum IRNodeTag {
   IRTag_Id = 1,
@@ -141,6 +142,24 @@ protected:
   uint32_t _m_end_pos;
   token_t		 _m_tok;
 };
+
+class IR_String: protected Visitor
+{
+public:
+  std::string stringify(IRNode* ir);
+  void clear() { _m_ss.str(""); }
+  std::string to_string() { return _m_ss.str(); }
+private:
+  IR_Visitor_Impl_Decl()
+  inline void increase_indent() { m_indent++; }
+  inline void indent_line () {
+    _m_ss << " ";
+  }
+private:
+  std::stringstream _m_ss;
+  uint32_t 					m_indent;// current indent
+};
+
 // ************************** micro **************************
 #define IR_Node_Accept_Visitor_Impl() \
 public: \
@@ -167,10 +186,12 @@ public: \
 #define IrName(ir) IR_ ## ir
 #define IrNode_Set_Method_Impl(ir, param) \
 IrName(ir)* IrName(ir)::set_## param ## (IRNode* in) { \
-  if(in == nullptr || in == m_## param ## .get()) \
+  if(in == nullptr )                                \
+    printf("in is nullptr when set init\n");        \
+  if(in == m_## param ## .get())                    \
     return this;																		\
   auto&& copy = new IrName(ir) (*this); 						\
-  copy-> ## m_## param ## == sptr_t<IRNode>(in); 		\
+  copy-> ## m_## param ## = sptr_t<IRNode>(in); 		\
   return copy;																			\
 }
 // ***********************************************************
@@ -283,7 +304,7 @@ public:
   typedef state_list_t::iterator ls_iterator_t;
   IR_Block(token_t t, uint32_t _e, const state_list_t& ls)
     :IRNode(t,_e), m_state_list(ls) {}
-  const state_list_t& list() const { return m_state_list; }
+  state_list_t& list() { return m_state_list; }
   virtual IRNode* accept(IRVisitor& visitor) override;
 protected:
   inline IR_Block* proc_ls(IRVisitor& visitor)
@@ -293,9 +314,12 @@ protected:
     for (auto& it : m_state_list)
     {
       IRNode* itr = it->accept(visitor);
-      if (itr != it.get())
+      if (itr != it.get()) {
         changed = true;
-      nls.push_back(sptr_t<IRNode>(itr));
+        nls.push_back(sptr_t<IRNode>(itr));
+      }else {
+        nls.push_back(it);
+      }
     }
     if (!changed) return this;
     auto copy = new IR_Block(*this);
@@ -319,6 +343,7 @@ public:
   inline IRNode* test() 		const { return m_test.get(); }
   inline IRNode* success() 	const { return m_success.get(); }
   inline IRNode* failed() 	const { return m_failed.get(); }
+  inline bool has_failed() const { return m_failed.operator bool(); }
   virtual IRNode* accept(IRVisitor& visitor) override;
 
 protected:
@@ -331,19 +356,3 @@ private:
   sptr_t<IRNode> m_failed;
 };
 
-class IR_String: protected Visitor
-{
-public:
-  std::string stringify(IRNode* ir);
-  void clear() { _m_ss.str(""); }
-  std::string to_string() { return _m_ss.str(); }
-private:
-  IR_Visitor_Impl_Decl()
-  inline void increase_indent() { m_indent++; }
-  inline void indent_line () {
-    _m_ss << " ";
-  }
-private:
-  std::stringstream _m_ss;
-  uint32_t 					m_indent;// current indent
-};

@@ -31,15 +31,20 @@ protected:
 
 	IRNode* parsing_decl();
 	IRNode* parsing_block();
+	IRNode* parsing_braced_block();
 	IRNode* parsing_one_line();
+	IRNode* parsing_stmt();
+	IRNode* parsing_stmt_if();
 
 	//				token				//
-	inline token_t token(); 
-	inline token_t next_tok();
-	inline token_t next_tok_must(TokenKind tk);
-	inline bool		has_tok(); 
-	inline void		try_fill_cache();
+	inline token_t 	token(); 
+	inline token_t 	next_tok();
+	inline token_t 	next_tok_must(TokenKind tk);
+	inline token_t 	eat(TokenKind tk);
+	inline bool			has_tok(); 
+	inline void			try_fill_cache();
 	inline uint32_t cur_pos() const { return _m_lex.cur_pos(); }
+	inline void 		ignore_empty_line();
 private:
 	std::list<token_t> _m_tok_cache;
 	Lex _m_lex;
@@ -141,7 +146,7 @@ private:
 	std::list<CodeGenType> t_stk;
 };
 
-class CodeGen: protected IRVisitor, protected NameTypeMap
+class CodeGen: protected Visitor, protected NameTypeMap
 {
 public:
 	CodeGen(Context* c): NameTypeMap(c), m_max_local(0), max_stk_size(0) { }
@@ -154,7 +159,9 @@ private:
 	CodeGenType gen_bin(IR_BinOp* ir);
 
 // code append operation
-	inline CodeGen* add_instr(uint8_t instr) { _m_builder.append(instr); return this; }
+	inline void replace_instr(size_t loc, uint8_t instr) { _m_builder.replace(loc, instr); }
+// position
+	inline size_t add_instr(uint8_t instr) { _m_builder.append(instr); return _m_builder.code_len() - 1; }
 	inline void add_int16_to_code(int16_t _i)
 	{
 		uint8_t* byte = (uint8_t*)(&_i);

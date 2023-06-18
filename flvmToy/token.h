@@ -8,38 +8,40 @@
 
 enum TokenKind : uint8_t
 {
-	// not valid token
-	TokNan = 0,
-	TokId,
-	TokInt,
-	TokFloat,
-	// operand 
-	TokAdd , // +
-	TokSub , // -
-	TokMul , // *
-	TokDiv , // /
-	TokLParent , // (
-	TokRParent ,  // )
-	// declaration
-	TokLet, // let
-	TokAssign, // =
-	// 
-	TokEq, // ==
-	TokLt, // <
-	TokLe, // <=
-	TokGt, // >
-	TokGe, // >=
-	// control
-	TokIf,
-	TokElse,
-	TokEol, // end of line => \n
-	TokEof, // end of file
+  // not valid token
+  TokNan = 0,
+  TokId,
+  TokInt,
+  TokFloat,
+  // operand 
+  TokAdd , // +
+  TokSub , // -
+  TokMul , // *
+  TokDiv , // /
+  TokLParent , // (
+  TokRParent ,  // )
+  TokLBrace, // {
+  TokRBrace, // }
+  // declaration
+  TokLet, // let
+  TokAssign, // =
+  // 
+  TokEq, // ==
+  TokLt, // <
+  TokLe, // <=
+  TokGt, // >
+  TokGe, // >=
+  // control
+  TokIf,
+  TokElse,
+  TokEol, // end of line => \n
+  TokEof, // end of file
 };
 
 enum TokendFlag : uint8_t
 {
-	TokFlagISTok = 0,
-	TokFlagNOTTok = 1
+  TokFlagISTok = 0,
+  TokFlagNOTTok = 1
 };
 // position: column row 16 * 2 = 32
 // token --> unsigned long long
@@ -63,28 +65,28 @@ std::string token_to_str(token_t tok);
 
 inline bool token_is_operator(token_t tok)
 {
-	switch (token_kind(tok))
-	{
-	case TokAdd:
-	case TokDiv:
-	case TokMul:
-	case TokSub:
-		return true;
-	}
-	return false;
+  switch (token_kind(tok))
+  {
+  case TokAdd:
+  case TokDiv:
+  case TokMul:
+  case TokSub:
+    return true;
+  }
+  return false;
 }
 
 inline bool token_is_comp_operator(token_t tok)
 {
-	switch(token_kind(tok))
-	{
-		case TokEq:
-		case TokLe:
-		case TokLt:
-		case TokGe:
-		case TokGt:	return true;
-		default: 		return false;
-	}
+  switch(token_kind(tok))
+  {
+    case TokEq:
+    case TokLe:
+    case TokLt:
+    case TokGe:
+    case TokGt:	return true;
+    default: 		return false;
+  }
 }
 
 #ifdef TOK_TEST

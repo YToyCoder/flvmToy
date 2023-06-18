@@ -14,7 +14,7 @@ IRNode* IR_BinOp::accept(IRVisitor& visitor)
 	}
 	if (self->_m_rhs.get() != nullptr)
 	{
-		self = self->set_rhs(_m_rhs->accept(visitor));
+		self = self->set_rhs(self->_m_rhs->accept(visitor));
 	}
 	else {
 		printf("error, binary_operator node rhs is nullptr\n");
@@ -112,11 +112,11 @@ IRNode* IR_String::visit(IR_BinOp* exp)
 {
 	if (nullptr != exp)
 	{
-		_m_ss << "<";
+		_m_ss << " <";
 		exp->lhs()->accept(*this);
 		_m_ss << "[" << IRTag_to_string(exp->tag()) << "]";
 		exp->rhs()->accept(*this);
-		_m_ss << ">";
+		_m_ss << "> ";
 	}
 	return exp;
 }

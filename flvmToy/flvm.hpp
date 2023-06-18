@@ -315,6 +315,10 @@ public:
   FlMethodBuilder* set_max_locals(size_t locals_size);
   FlMethod* build();
   inline size_t code_len() const { return len; }
+  inline void replace(size_t loc, uint8_t instr) {
+    if(loc >= len) throw std::exception();
+    code_cache[loc] = instr;
+  }
 
   void clear()
   {
