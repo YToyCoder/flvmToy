@@ -65,6 +65,7 @@ void set_instr_map()
   InstrNameDefine(ifgt);
   InstrNameDefine(ifge);
   InstrNameDefine(go);
+  InstrNameDefine(dcmp);
   InstrNameDefine(i2d);
   InstrNameDefine(i2b);
   InstrNameDefine(d2i);
@@ -106,7 +107,7 @@ FlMethodBuilder::FlMethodBuilder()
 }
 FlMethodBuilder::~FlMethodBuilder()
 {
-  if (nullptr != code_cache && NULL != code_cache)
+  if (nullptr != code_cache)
   {
     delete[] code_cache;
   }
@@ -259,7 +260,7 @@ void FlMethod::to_string() const
 {
   size_t instr_cursor = 0;
   instr_t instr;
-  size_t ic_record;
+  int ic_record;
   while (instr_cursor < _code_len)
   {
     ic_record = instr_cursor;
@@ -309,6 +310,7 @@ void FlMethod::to_string() const
     Case_Print(i2d)
     Case_Print(i2b)
     Case_Print(d2i)
+    Case_Print(dcmp)
     Case_Print_One_Param(istore)
     Case_Print_One_Param(dstore)
     Case_Print_One_Param(bstore)
@@ -319,6 +321,7 @@ void FlMethod::to_string() const
     Case_Print_One_Param(ifge)
     Case_Print_One_Param(go)
     default:
+      printf("not support instruction (%04x:%s) to string\n", instr, instr_name((Instruction::Code)instr));
       throw std::exception("not support instruction when code to string");
     }
   }
@@ -452,6 +455,16 @@ void FlSExec::dispatch(instr_t instr)
     Case_Comp(ifgt, >)
     Case_Comp(ifge, >=)
     case Instruction::go: _m_frame->set_pc(read_instr()); break;
+    case Instruction::dcmp:
+      {
+        FlDouble d1 = _m_frame->popd();
+        FlDouble d2 = _m_frame->popd();
+        FlDouble sub = d2 - d1;
+        if(sub == 0) _m_frame->pushi(0);
+        if(sub < 0) _m_frame->pushi(-1);
+        if(sub > 0) _m_frame->pushi(1);
+      }
+      break;
 
     default:
       throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());

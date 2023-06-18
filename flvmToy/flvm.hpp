@@ -55,6 +55,7 @@ struct Instruction {
     ifgt     = 0x2C,
     ifge     = 0x2D,
     go       = 0x2E,
+    dcmp     = 0x2F,
 
     // cast
     i2d      = 0x30, // int to double
