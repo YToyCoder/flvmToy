@@ -261,6 +261,10 @@ void FlMethod::to_string() const
   size_t instr_cursor = 0;
   instr_t instr;
   int ic_record;
+  for(int i=0; i < _k_len; i++) {
+    printf("%02d ", i);
+    std::cout << k[i] << std::endl; 
+  }
   while (instr_cursor < _code_len)
   {
     ic_record = instr_cursor;
@@ -296,14 +300,14 @@ void FlMethod::to_string() const
     case Instruction::ldci: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%03d %04x %10s %03d ", ic_record, instr, "ldci", const_loc);
+      printf("%03d %04x %10s #%03d ", ic_record, instr, "ldci", const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
     case Instruction::ldcd: 
     {
       uint8_t const_loc = codes[instr_cursor++];
-      printf("%03d %04x %10s %03d ", ic_record, instr, "ldcd", const_loc);
+      printf("%03d %04x %10s #%03d ", ic_record, instr, "ldcd", const_loc);
       std::cout << k[const_loc] << std::endl;
     }
       break;
