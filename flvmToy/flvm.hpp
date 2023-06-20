@@ -1,7 +1,9 @@
 #pragma once
-#include "stdint.h"
 #include <string>
 #include <unordered_map>
+#include <stdint.h>
+
+#include "FlValue.h"
 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
@@ -15,7 +17,6 @@ struct TermColor {
 #endif
 
 void COLOR_PRINT(const char* s, int color);
-uint64_t hash_cstr(const char *p, size_t len);
 
 struct Instruction {
   enum Code: uint8_t {
@@ -73,117 +74,9 @@ void set_instr_map();
 const char* instr_name(Instruction::Code instr);
 // instruction type : 1 byte
 typedef uint8_t instr_t;
-// vm types
-
-class FlObj {
-  virtual uint64_t hash() = 0;
-};
-
-typedef long long FlInt;
-typedef double    FlDouble;
-typedef bool      FlBool;
-typedef char      FlChar;
-typedef uint8_t   FlByte;
-typedef FlObj*    FlObjp;
-
-// vm slot
-union FlValue {
-  FlInt _int;
-  FlDouble _double;
-  FlObjp _obj;
-  FlBool _bool;
-  FlChar _char;
-  FlByte _byte;
-};
-
-typedef union FlValue FlValue;
 
 FlInt sign_extend(uint16_t v);
 // slot with tag which for debug
-class FlTagValue{
-  FlValue _val;
-  uint8_t _tag;
-  FlTagValue(uint8_t tag){
-    _tag = tag;
-    _val._int = 0;
-  }
-  FlTagValue() : _tag(0) {}
-  friend class FlFrame;
-
-  public:
-
-    FlInt _int()      { return _val._int; }
-    FlDouble _double(){ return _val._double; }
-    void *objp()      { return _val._obj; }
-    FlBool _bool()    { return _val._bool; }
-    FlChar _char()    { return _val._char; }
-
-    void set(FlInt v)   { this->_val._int = v; _tag = IntTag; }
-    void set(FlBool v)  { this->_val._bool = v; _tag = BoolTag; }
-    void set(FlChar v)  { this->_val._char = v; _tag = CharTag; }
-    void set(FlDouble v){ this->_val._double = v; _tag = DoubleTag; }
-    void set(FlObjp v)   { this->_val._obj = v; _tag = ObjTag; }
-
-    enum TagT : uint8_t{
-      IntTag,
-      DoubleTag,
-      ObjTag,
-      BoolTag,
-      CharTag,
-      UnInit,
-    };
-    inline const FlValue& union_v() const { return _val; }
-    inline TagT tag()  const { return (TagT)_tag; }
-
-    inline void toString(std::string& out){
-      switch(_tag){
-      case IntTag:    out = std::move(std::to_string(_int()));
-      case DoubleTag: out = std::move(std::to_string(_double()));
-      case ObjTag:    out = ("obj");
-      case BoolTag:   out = std::move(std::to_string(_bool()));
-      case CharTag:   out = std::move(std::to_string(_char()));
-        default:      out = "nil";
-      };
-    }
-};
-
-std::ostream & operator<<(std::ostream& stream, const FlTagValue& value);
-
-class FlString : FlObj{
-  const FlChar *chars;
-  FlInt len;
-  FlInt hash_code;
-  public:
-    FlString(FlChar *chars,size_t _len){
-      this->chars = chars;
-      len = _len;
-      hash_code = 0;
-    }
-
-    FlInt length() {
-      return len;
-    }
-
-    FlChar charAt(FlInt loc) {
-      range_check(loc);
-      return chars[loc];
-    }
-
-    inline uint64_t hash() override {
-      if(hash_code == 0)
-        hash_code = hash_cstr(chars, len);
-      return hash_code;
-    }
-
-    void range_check(FlInt loc){
-      if(loc >= len)
-        throw "range out of index";
-    }
-
-    const char* c_char(){
-      return chars;
-    }
-};
 
 class FlMethod {
   instr_t* codes;
@@ -199,7 +92,6 @@ class FlMethod {
     size_t max_locals() { return _max_locals; }
     void to_string() const;
 };
-
 
 class FlFrame
 {

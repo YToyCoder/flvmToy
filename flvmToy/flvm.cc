@@ -192,59 +192,6 @@ FlMethod* FlMethodBuilder::build()
   return ret;
 }
 
-class FlStringConstPool 
-{
-  std::unordered_map<uint64_t,FlString *> pool;
-  public:
-  FlString *ofFlstring(const char *chars, size_t len){
-    const uint64_t hash_code = hash_cstr(chars, len);
-    FlString *obj = get(hash_code);
-    if(obj == nullptr){
-      obj = new FlString(const_cast<FlChar*>(chars), len);
-      put(hash_code, obj);
-    }
-    return obj;
-  }
-
-  void put(uint64_t key, FlString * val){
-    pool.emplace(key, val);
-  }
-
-  FlString *get(uint64_t key){
-    auto iter = pool.find(key);
-    if(iter == pool.end())
-      return nullptr;
-    return iter->second;
-  }
-
-};
-
-class FlBinary {
-};
-
-class FlFileLoader {
-  static uint8_t MagicNumber;
-  public:
-    void load(FlString *filename){
-      std::ifstream file(filename->c_char(), std::ios::in | std::ios::binary);
-      // magic number >> F1
-      char mn;
-      file.read(&mn, 1);
-      // version
-    }
-};
-
-inline std::string repeat(const std::string& str, size_t n){
-  std::stringstream ret;
-  for(int i=0; i<n; i++)
-    ret << str;
-  return ret.str();
-}
-
-inline std::string append_eq_util(const std::string& str, size_t n){
-  return str + repeat(" ", n - str.size() - 1) + "=";
-}
-
 #define STR(content) #content
 #define Case_Print(instruction)                                   \
   case Instruction::## instruction ##:                            \
