@@ -2,7 +2,7 @@
 #include "lex.h"
 #include <functional>
 
-/* tokens */
+// **************************** token **************************
 void Parser::try_fill_cache()
 {
   if (_m_tok_cache.empty() && _m_lex.has_token())
@@ -97,6 +97,14 @@ IRNode* Parser::parsing_id()
   return new IR_Id(t, tok_foffset(t), tok_end(t));
 }
 
+IRNode* Parser::parsing_str()
+{
+  token_t&& t = next_tok();
+  unistr_t ustr = _m_lex.token_string(t);
+  FlString* str = m_context->string_pool()->of_string(ustr.getBuffer(), ustr.length());
+  return new IR_Str(t, tok_end(t), str);
+}
+
 IRNode* Parser::parsing_one()
 {
   TokenKind&& tk = token_kind(token());
@@ -107,6 +115,8 @@ IRNode* Parser::parsing_one()
   case TokInt:
   case TokFloat:
     return parsing_num();
+  case TokStr: 
+    return parsing_str();
   case TokLParent:
   {
     next_tok();
@@ -219,11 +229,12 @@ IRNode* Parser::parsing_block()
   ignore_empty_line();
   while (has_tok() && !token_is_kind(token(), TokRBrace)) {
     ls.push_back(sptr_t<IRNode>(parsing_stmt()));
-    if (has_tok()) eat(TokEol); // every line expression end with TokEol
+    // if (has_tok()) eat(TokEol); // every line expression end with TokEol
     ignore_empty_line();
   }
   return new IR_Block(start_token, _m_lex.cur_pos(), ls);
 }
+
 IRNode* Parser::parsing_braced_block()
 {
   token_t t = eat(TokLBrace);
@@ -292,13 +303,19 @@ IRNode* TypeConvert::visit(IR_Num* num)
   return num;
 }
 
+IRNode* TypeConvert::visit(IR_Str* str)
+{
+  push_t(CodeGen_S);
+  return str;
+}
+
 IRNode* TypeConvert::visit(IR_BinOp* ir)
 {
   CodeGenType rhs_t = pop_t();
   CodeGenType lhs_t = pop_t();
   if (lhs_t != rhs_t) {
     CodeGenType t = better_type(lhs_t, rhs_t);
-		push_t(t);
+    push_t(t);
     if (t == lhs_t) {
       IRNode* irRHS = ir->rhs();
       IRNode* rhs = new IR_Cast(irRHS->end_loc(), irRHS, NodeDouble);
@@ -327,6 +344,7 @@ IRNode* TypeConvert::visit(IR_Cast* cast)
   }
   return cast; 
 }
+
 IRNode* TypeConvert::visit(IR_Id* id)
 {
   push_t(id_node_type(id));
@@ -346,6 +364,9 @@ IRNode* TypeConvert::visit(IR_Decl* decl)
     break;
   case CodeGen_B:
     this->decl(decl->id(), NodeBool);
+    break;
+  case CodeGen_S:
+    this->decl(decl->id(), NodeString);
     break;
   default:
     std::cout << "decl " << decl->id() << " wrong" << std::endl;
@@ -382,6 +403,16 @@ IRNode* CodeGen::visit(IR_Block* block)
     it->accept(*this);
   }
   return block;
+}
+
+IRNode* CodeGen::visit(IR_Str* node)
+{
+  FlString* string = node->str();
+  uint8_t loc = store_const(string);
+  add_instr(Instruction::ldcs);
+  add_instr(loc);
+  push_t(CodeGen_S);
+  return node;
 }
 
 
@@ -576,24 +607,20 @@ IRNode* CodeGen::visit(IR_Decl* decl)
   decl->init()->accept(*this);
   CodeGenType t = pop_t();
   unistr_t name = decl->id();
+#define Case_Decl(_case, instr, variable_t) \
+  case CodeGen_## _case: \
+    add_instr(Instruction::## instr); \
+    add_instr(local_for_name(name));  \
+    decl_variable(name, variable_t);  \
+    break;
+
   switch (t)
   {
-  case CodeGen_I: 
-    add_instr(Instruction::istore);
-    add_instr(local_for_name(name));
-    decl_variable(name, NodeInt);
-    break;
-  case CodeGen_D:
-    add_instr(Instruction::dstore);
-    add_instr(local_for_name(name));
-    decl_variable(name, NodeDouble);
-    break;
-  case CodeGen_B:
-    add_instr(Instruction::bstore);
-    add_instr(local_for_name(name));
-    decl_variable(name, NodeBool);
-    break;
-  default: throw std::exception("encounter unsupported type when gen code for decl");
+    Case_Decl(I, istore, NodeInt)
+    Case_Decl(D, dstore, NodeDouble)
+    Case_Decl(B, bstore, NodeBool)
+    Case_Decl(S, ostore, NodeString)
+    default: throw std::exception("encounter unsupported type when gen code for decl");
   }
   return decl;
 }
@@ -605,7 +632,7 @@ IRNode* CodeGen::visit(IR_If* stmt_if)
   size_t failed_replace_flag = add_instr(0);
   stmt_if->success()->accept(*this);
   if(stmt_if->has_failed()) {
-		auto&& failed = stmt_if->failed();
+    auto&& failed = stmt_if->failed();
     add_instr(Instruction::go);
     size_t jump_failed_flag = add_instr(0);
     replace_instr(failed_replace_flag, _m_builder.code_len());

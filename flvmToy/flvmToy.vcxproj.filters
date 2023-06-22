@@ -653,6 +653,9 @@
     <ClCompile Include="parse.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="FlValue.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="new.txt">

@@ -9,6 +9,7 @@
 #include <iomanip>
 #include "flvm.hpp"
 #include "MurmurHash2.h"
+#include "unicode/ustream.h"
 
 // color print
 void COLOR_PRINT(const char* s, int color)
@@ -49,8 +50,10 @@ void set_instr_map()
   InstrNameDefine(istore);
   InstrNameDefine(dstore);
   InstrNameDefine(bstore);
+  InstrNameDefine(ostore);
   InstrNameDefine(ldci);
   InstrNameDefine(ldcd);
+  InstrNameDefine(ldcs);
   InstrNameDefine(iadd);
   InstrNameDefine(dadd);
   InstrNameDefine(isub);
@@ -87,7 +90,6 @@ std::ostream& operator<<(std::ostream& stream, const FlTagValue& value)
         case FlTagValue::DoubleTag: stream << std::setprecision(10) <<(FlDouble) value.union_v()._double; break;
         case FlTagValue::ObjTag:    stream << "obj"; break;
         case FlTagValue::BoolTag:   stream << value.union_v()._bool; break;
-        case FlTagValue::CharTag:   stream << value.union_v()._char; break;
         default:                    stream << "nil"; break;
       };
 
@@ -170,6 +172,14 @@ uint8_t FlMethodBuilder::store_const_double(FlDouble _d)
   return const_loc;
 }
 
+uint8_t FlMethodBuilder::store_const_str(FlString* str)
+{
+  const_pool_size_check();
+  uint8_t const_loc = k_len;
+  k_cache[k_len++].set(str);
+  return const_loc;
+}
+
 FlMethod* FlMethodBuilder::build()
 {
   FlMethod *ret = new FlMethod();
@@ -193,8 +203,8 @@ FlMethod* FlMethodBuilder::build()
 }
 
 #define STR(content) #content
-#define Case_Print(instruction)                                   \
-  case Instruction::## instruction ##:                            \
+#define Case_Print(instruction)                                     \
+  case Instruction::## instruction ##:                              \
   printf( STR( %03d  %04x %10s\n), ic_record, instr, #instruction); \
   break;
 
@@ -258,6 +268,14 @@ void FlMethod::to_string() const
       std::cout << k[const_loc] << std::endl;
     }
       break;
+    case Instruction::ldcs: 
+    {
+      uint8_t const_loc = codes[instr_cursor++];
+      printf("%03d %04x %10s #%03d ", ic_record, instr, "ldcd", const_loc);
+      std::cout << k[const_loc] << std::endl;
+    }
+      break;
+
     Case_Print(i2d)
     Case_Print(i2b)
     Case_Print(d2i)
@@ -265,6 +283,7 @@ void FlMethod::to_string() const
     Case_Print_One_Param(istore)
     Case_Print_One_Param(dstore)
     Case_Print_One_Param(bstore)
+    Case_Print_One_Param(ostore)
     Case_Print_One_Param(ifeq)
     Case_Print_One_Param(iflt)
     Case_Print_One_Param(ifle)
@@ -371,6 +390,9 @@ void FlSExec::dispatch(instr_t instr)
     case Instruction::bstore: 
       _m_frame->storeb(_m_frame->popb(), read_instr()); 
       break;
+    case Instruction::ostore: 
+      _m_frame->storeo(_m_frame->popo(), read_instr()); 
+      break;
 
     case Instruction::iadd: _m_frame->iadd(); break;
     case Instruction::dadd: _m_frame->dadd(); break;
@@ -382,6 +404,7 @@ void FlSExec::dispatch(instr_t instr)
     case Instruction::ddiv: _m_frame->ddiv(); break;
     case Instruction::ldci: _m_frame->ldci(read_instr()); break;
     case Instruction::ldcd: _m_frame->ldcd(read_instr()); break;
+    case Instruction::ldcs: _m_frame->ldcs(read_instr()); break;
     case Instruction::i2d:
       _m_frame->pushd((FlDouble)_m_frame->popi());
       break;
@@ -389,7 +412,7 @@ void FlSExec::dispatch(instr_t instr)
       _m_frame->pushb((FlBool)_m_frame->popi());
       break;
     case Instruction::d2i:
-      _m_frame->pushi(_m_frame->popd());
+      _m_frame->pusho(_m_frame->popo());
       break;
 
 #define Case_Comp(instruction, op) \
@@ -418,6 +441,7 @@ void FlSExec::dispatch(instr_t instr)
       break;
 
     default:
+      printf("not support instruction : %s \n", instr_name((Instruction::Code)instr));
       throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
   };
 #if 1

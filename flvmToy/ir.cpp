@@ -80,27 +80,30 @@ std::string IR_String::stringify(IRNode* ir)
 IRNode* IR_String::visit(IR_Id* exp)
 {
 	if (exp != nullptr)
-	{
 		_m_ss << "[Id]";
-	}
 	return exp;
+}
+
+IRNode* IR_String::visit(IR_Str* string)
+{
+	if(string != nullptr)
+		_m_ss << "\"" << "string" << "\"";
+	return string;
 }
 
 IRNode* IR_String::visit(IR_Num* exp)
 {
-	if (exp != nullptr)
-	{
+	if (exp != nullptr) {
 		_m_ss 
 			<< (exp->is_float() ? "D(" + std::to_string(exp->get_db()) +")" : "")
 			<< (exp->is_int() ? "I(" + std::to_string(exp->get_int()) + ")" : "");
-	}
+  }
 	return exp;
 }
 
 IRNode* IR_String::visit(IR_Cast* exp)
 {
-	if (nullptr != exp)
-	{
+	if (nullptr != exp) {
 		_m_ss << "<C|";
 		exp->cast_from()->accept(*this);
 		_m_ss << ":" << exp->cast_to() << ">";

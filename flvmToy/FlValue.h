@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "unicode/uchar.h"
 #include "unicode/ustring.h"
@@ -41,7 +42,7 @@ class FlTagValue{
 
     FlInt _int()      { return _val._int; }
     FlDouble _double(){ return _val._double; }
-    void *objp()      { return _val._obj; }
+    FlObj* _objp()      { return _val._obj; }
     FlBool _bool()    { return _val._bool; }
     FlChar _char()    { return _val._char; }
 
@@ -77,49 +78,51 @@ class FlTagValue{
 std::ostream & operator<<(std::ostream& stream, const FlTagValue& value);
 uint64_t hash_cstr(const char *p, size_t len);
 
-class FlString : FlObj {
+class FlString : public FlObj {
   const FlChar *chars;
   FlInt len;
   FlInt hash_code;
-  public:
-    FlString(FlChar *chars,size_t _len){
-      // this->chars = chars;
-      this->chars = new UChar[_len];
-      // U_ICU_NAMESPACE::
-      u_strncpy(const_cast<UChar*>(this->chars), chars, _len);
-      len = _len;
-      hash_code = 0;
+public:
+  FlString(const FlChar *chars,size_t _len)
+    : FlString(chars, len, 0) { }
+
+  FlString(const FlChar* chars, size_t _len , uint64_t hcode)
+  {
+    this->chars = new UChar[_len];
+    u_strncpy(const_cast<UChar*>(this->chars), chars, _len);
+    len = _len;
+    hash_code = 0;
+  }
+
+  ~FlString(){ if(chars != nullptr) delete[] chars; }
+
+  FlInt length() { return len; }
+
+  FlChar charAt(FlInt loc) {
+    range_check(loc);
+    return chars[loc];
+  }
+
+  inline uint64_t hash() override {
+    if(hash_code == 0) {
+      const char* cs = (const char*) chars;
+      hash_code = hash_cstr(cs, len * 2);
     }
+    return hash_code;
+  }
 
-    ~FlString(){ if(chars != nullptr) delete[] chars; }
-
-    FlInt length() { return len; }
-
-    FlChar charAt(FlInt loc) {
-      range_check(loc);
-      return chars[loc];
-    }
-
-    inline uint64_t hash() override {
-      if(hash_code == 0) {
-        const char* cs = (const char*) chars;
-        hash_code = hash_cstr(cs, len * 2);
-      }
-      return hash_code;
-    }
-
-    void range_check(FlInt loc){
-      if(loc >= len)
-        throw "range out of index";
-    }
+  void range_check(FlInt loc){
+    if(loc >= len)
+      throw "range out of index";
+  }
 
 };
 
 class StringPool 
 {
 public:
-  FlString of_string(const UChar* cs);
-  FlString of_string(FlString* str);
+  FlString* of_string(const UChar* cs, size_t len);
+  FlString* of_string(FlString* str);
 private:
   std::unordered_map<uint64_t, FlString*> m_string_map;
 };

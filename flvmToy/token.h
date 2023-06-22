@@ -13,6 +13,7 @@ enum TokenKind : uint8_t
   TokId,
   TokInt,
   TokFloat,
+  TokStr,
   // operand 
   TokAdd , // +
   TokSub , // -

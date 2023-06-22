@@ -70,9 +70,7 @@ protected:
 	void try_ensure_buf();
 	void fill_buffer();
 	// char operations
-	inline bool has_char() { 
-		return mBufLimit > mBufCursor || !u_feof(mFileHandle); 
-	}
+	inline bool has_char() { return mBufLimit > mBufCursor || !u_feof(mFileHandle); }
 	inline UChar next_char(); 
 	inline UChar peek_char() { try_ensure_buf(); return mbuf[mBufCursor]; }
 	inline UChar32 codepoint() { 
@@ -84,6 +82,7 @@ protected:
 	// string operation
 	token_t alphabetic_start_token();
 	token_t numeric_token();
+	token_t proc_string_token();
 protected:
 	inline char get_cchar_from_uchar(UChar uc) { return uc & 0x007F; }
 	// end of line 

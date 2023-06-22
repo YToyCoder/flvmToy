@@ -14,13 +14,19 @@
 class Parser
 {
 public:
-	Parser(const std::string& filename) :_m_lex(filename) {}
+	Parser(const std::string& filename) 
+		:_m_lex(filename), m_context(nullptr) { }
 	Parser(): Parser("") {}
 	IRNode* parse();
-	bool init(Context* c) { return _m_lex.init(c); }
+	bool init(Context* c) { 
+		set_context(c);
+		return _m_lex.init(c); 
+	}
 protected:
+	// ***************************** parsing ********************************
 	IRNode* parsing_num();
 	IRNode* parsing_id();
+	IRNode* parsing_str();
 	IRNode* parsing_one(); // the expression that can treat as one expression
 	IRNode* parsing_mul();
 	IRNode* parsing_add();
@@ -36,7 +42,7 @@ protected:
 	IRNode* parsing_stmt();
 	IRNode* parsing_stmt_if();
 
-	//				token				//
+	// ******************************** token ******************************
 	inline token_t 	token(); 
 	inline token_t 	next_tok();
 	inline token_t 	next_tok_must(TokenKind tk);
@@ -45,16 +51,21 @@ protected:
 	inline void			try_fill_cache();
 	inline uint32_t cur_pos() const { return _m_lex.cur_pos(); }
 	inline void 		ignore_empty_line();
+
+	// ********************** context ********************************
+	void set_context(Context* context) { m_context = context; }
 private:
 	std::list<token_t> _m_tok_cache;
 	Lex _m_lex;
+	Context* m_context;
 };
 
 enum CodeGenType
 {
+	CodeGen_B, // bool ? byte
 	CodeGen_I, // int
 	CodeGen_D, // double
-	CodeGen_B, // bool ? byte
+	CodeGen_S, // string
 };
 
 inline CodeGenType better_type(CodeGenType ta, CodeGenType tb)
@@ -86,15 +97,15 @@ protected:
 			throw std::exception("variable not declared");
 		}
 		unistr_t type_name = it->second;
-		if (type_name == NodeInt)
-		{
+		if (type_name == NodeInt) {
 			return CodeGen_I;
-		}else if (type_name == NodeDouble)
-		{
+		}else if (type_name == NodeDouble) {
 			return CodeGen_D;
 		}
-		else
-		{
+		else if(type_name == NodeString) {
+			return CodeGen_S;
+		}
+		else {
 			std::cout << "not support type for " << type_name << std::endl;
 			throw std::exception("not support type");
 		}
@@ -223,6 +234,17 @@ private:
 		return loc;
 	}
 
+	inline uint8_t store_const(FlString* str)
+	{
+		uint8_t loc;
+		if (!lookup_in_map(m_str_map, str, loc))
+		{
+			loc = _m_builder.store_const_str(str);
+			m_str_map.insert(std::make_pair(str, loc));
+		}
+		return loc;
+	}
+
 	template<class _Ty>
 	bool lookup_in_map(const std::map<_Ty,uint8_t>& map,_Ty& key, uint8_t& out)
 	{
@@ -242,13 +264,14 @@ private:
 	}
 
 	// type stack
-	std::list<CodeGenType> t_stk; // type stack
-	size_t max_stk_size;
+	std::list<CodeGenType> 				t_stk; // type stack
+	size_t 												max_stk_size;
 	// local info
-	uint8_t m_max_local; // init 0
-	std::set<uint8_t> m_unused_local;
-	std::map<unistr_t, uint8_t> m_local_name_map;   // string map to local index
-	std::map<FlInt, uint8_t> m_int_const_map;			
-	std::map<FlDouble, uint8_t> m_double_const_map; // 	
-	FlMethodBuilder _m_builder;
+	uint8_t 											m_max_local; // init 0
+	std::set<uint8_t> 						m_unused_local;
+	std::map<unistr_t, uint8_t> 	m_local_name_map;   // string map to local index
+	std::map<FlInt, uint8_t> 			m_int_const_map;			
+	std::map<FlDouble, uint8_t> 	m_double_const_map; //
+	std::map<FlString*, uint8_t> 	m_str_map; 	
+	FlMethodBuilder 							_m_builder;
 };

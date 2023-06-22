@@ -1,15 +1,17 @@
 #pragma once
 #include "common.h"
 #include "token.h"
+#include "FlValue.h"
+#include "unicode/ustream.h"
+
 #include <memory>
 #include <vector>
 #include <sstream>
-#include <ranges>
-#include "unicode/ustream.h"
 
 enum IRNodeTag {
   IRTag_Id = 1,
   IRTag_Num,
+  IRTag_Str,
   IRTag_Add,
   IRTag_Sub,
   IRTag_Mul,
@@ -19,7 +21,7 @@ enum IRNodeTag {
   IRTag_Le, // <=
   IRTag_Gt, // >
   IRTag_Ge, // >=
-  // 
+  //
   IRTag_Cast,
   IRTag_Decl, // declaration
   IRTag_Ass,  // assignment
@@ -31,9 +33,10 @@ enum IRNodeTag {
 
 #define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
 // node string type
-#define NodeInt "I"
-#define NodeDouble "D"
-#define NodeBool "B"
+#define NodeInt     "I"
+#define NodeDouble  "D"
+#define NodeBool    "B"
+#define NodeString  "S"
 #define TagToStringCase(tag, str) \
   case IRTag_##tag : return str
 
@@ -77,6 +80,7 @@ inline IRNodeTag token_kind_to_tag(TokenKind tk)
 class IRNode;
 class IR_Id;
 class IR_Num;
+class IR_Str;
 class IR_BinOp;
 class IR_Cast;
 class IR_Decl;
@@ -89,6 +93,7 @@ using sptr_t = std::shared_ptr<_Ty> ;
 #define Visitor_Methods_Decl()								\
   virtual IRNode* visit(IR_Id* id) = 0;				\
   virtual IRNode* visit(IR_Num* num) = 0;			\
+  virtual IRNode* visit(IR_Str* str) = 0;			\
   virtual IRNode* visit(IR_BinOp* bin) = 0;		\
   virtual IRNode* visit(IR_Cast* cast) = 0;		\
   virtual IRNode* visit(IR_Decl* decl) = 0;		\
@@ -108,8 +113,9 @@ public:
 };
 
 #define IR_Visitor_Impl_Decl()											\
-  virtual IRNode* visit(IR_Id* _id)  override;			\
-  virtual IRNode* visit(IR_Num* _num) override ;		\
+  virtual IRNode* visit(IR_Id* id)  override;			  \
+  virtual IRNode* visit(IR_Num* num) override ;		  \
+  virtual IRNode* visit(IR_Str* str) override ;			\
   virtual IRNode* visit(IR_BinOp* _bin) override ;	\
   virtual IRNode* visit(IR_Cast* _cast) override ;	\
   virtual IRNode* visit(IR_Decl* _decl) override;		\
@@ -211,11 +217,11 @@ public:
 // number node
 class IR_Num : public IRNode
 {
-    friend class Parser;
+  friend class Parser;
   IRNode_Impl(IRTag_Num)
   IR_Node_Accept_Visitor_Impl()
 public:
-  IR_Num(token_t tok, uint32_t _s): IRNode(tok, _s), _m_num(){}
+  IR_Num(token_t tok, uint32_t e): IRNode(tok, e), _m_num(){}
   IR_Num(token_t tok, uint32_t _s, uint32_t _e)
     : IRNode(tok, _s, _e), _m_num(){}
   bool is_int()		{ return token_is_kind(token(), TokInt); }
@@ -227,6 +233,19 @@ private:
     double db_value;
     int		 i_value;
   } _m_num;
+};
+
+class IR_Str: public IRNode 
+{
+  friend class Parser;
+  IRNode_Impl(IRTag_Str)
+  IR_Node_Accept_Visitor_Impl()
+public:
+  IR_Str(token_t t, uint32_t e, FlString* str)
+    : IRNode(t, e), m_str(str) {}
+  FlString* str() const { return m_str; }
+private:
+  FlString* m_str;
 };
 
 class IR_Cast : public IRNode
@@ -355,4 +374,3 @@ private:
   sptr_t<IRNode> m_success;
   sptr_t<IRNode> m_failed;
 };
-

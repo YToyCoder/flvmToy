@@ -1,11 +1,18 @@
 #pragma once
 #include "token.h"
+#include "FlValue.h"
 #include "unicode/ustream.h"
 #include <map>
 
 class Context
 {
 public:
+	Context() {
+		m_string_pool = new StringPool();
+	}
+	~Context() {
+		delete m_string_pool;
+	}
 	void store_token_str(token_t t, const unistr_t& str)
 	{
 		uint32_t s = tok_foffset(t);
@@ -38,8 +45,11 @@ public:
 		}
 		std::cout << std::endl;
 	}
+
+	StringPool* string_pool() const { return m_string_pool; }
 private:
-	std::map<uint32_t, unistr_t> m_tok_str;
+	std::map<uint32_t, unistr_t>  m_tok_str;
+	StringPool* 									m_string_pool;
 };
 
 
