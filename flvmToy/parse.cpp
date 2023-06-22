@@ -101,6 +101,8 @@ IRNode* Parser::parsing_str()
 {
   token_t&& t = next_tok();
   unistr_t ustr = _m_lex.token_string(t);
+  std::cout << "parsing string >> " <<  ustr << " : " << ustr.length() << std::endl;
+  u_printf_u(ustr.getBuffer());
   FlString* str = m_context->string_pool()->of_string(ustr.getBuffer(), ustr.length());
   return new IR_Str(t, tok_end(t), str);
 }
@@ -619,7 +621,7 @@ IRNode* CodeGen::visit(IR_Decl* decl)
     Case_Decl(I, istore, NodeInt)
     Case_Decl(D, dstore, NodeDouble)
     Case_Decl(B, bstore, NodeBool)
-    Case_Decl(S, ostore, NodeString)
+    Case_Decl(S, sstore, NodeString)
     default: throw std::exception("encounter unsupported type when gen code for decl");
   }
   return decl;

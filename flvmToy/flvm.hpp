@@ -37,6 +37,7 @@ struct Instruction {
     dstore   = 0x0E,
     bstore   = 0x0F,
     ostore   = 0x11, // store string in local value
+    sstore   = 0x11, // store string in local value
     ldci     = 0x15, // load int from consts
     ldcd     = 0x16, // load double from consts
     ldcs     = 0x17, // load string from consts
@@ -105,12 +106,13 @@ public:
     void pushb(FlBool v)  { stkp->set(v); stkp++; }
     void pushi(FlInt v)   { stkp->set(v); stkp++; }
     void pusho(FlObjp v)   { stkp->set(v); stkp++; }
+    void pushs(FlString* v)   { stkp->set(v); stkp++; }
     void loadi(size_t loc) { pushi(locals[loc]._int()); }
     void loadd( size_t loc) { pushd(locals[loc]._double()); }
     void storei(FlInt i, size_t loc) { locals[loc].set(i); }
     void stored(FlDouble i, size_t loc) { locals[loc].set(i); }
     void storeb(FlBool i, size_t loc) { locals[loc].set(i); }
-    void storeo(FlObj* obj, size_t loc) { locals[loc].set(obj); }
+    void stores(FlString* obj, size_t loc) { locals[loc].set(obj); }
 
     void iadd() { pushi(popi() + popi()); }
     void dadd() { pushd(popd() + popd()); }
@@ -125,10 +127,11 @@ public:
     FlBool popb(){ pop_check();stkp--; return stkp->_bool();}
     FlDouble popd() {pop_check(); return (--stkp)->_double(); }
     FlObj* popo() {pop_check(); return (--stkp)->_objp(); }
+    FlString* pops() {pop_check(); return (--stkp)->_str(); }
 
     void ldci(uint8_t k_loc) { pushi(current_exec->k[k_loc]._int());    }
     void ldcd(uint8_t k_loc) { pushd(current_exec->k[k_loc]._double()); }
-    void ldcs(uint8_t k_loc) { pusho(current_exec->k[k_loc]._objp()); }
+    void ldcs(uint8_t k_loc) { pushs(current_exec->k[k_loc]._str()); }
     void set_pc(uint8_t offset) { pc = current_exec->codes + offset; }
 
 public:

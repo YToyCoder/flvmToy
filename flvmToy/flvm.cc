@@ -6,10 +6,8 @@
 #include <fstream>
 #include <algorithm>
 #include <stdio.h>
-#include <iomanip>
 #include "flvm.hpp"
 #include "MurmurHash2.h"
-#include "unicode/ustream.h"
 
 // color print
 void COLOR_PRINT(const char* s, int color)
@@ -81,20 +79,6 @@ uint64_t hash_cstr(const char *p, size_t len){
   return MurmurHash64A(p, len, hash_seed);
 }
 
-// vm obj
-
-std::ostream& operator<<(std::ostream& stream, const FlTagValue& value)
-{
-      switch(value.tag()){
-        case FlTagValue::IntTag:    stream << value.union_v()._int; break;
-        case FlTagValue::DoubleTag: stream << std::setprecision(10) <<(FlDouble) value.union_v()._double; break;
-        case FlTagValue::ObjTag:    stream << "obj"; break;
-        case FlTagValue::BoolTag:   stream << value.union_v()._bool; break;
-        default:                    stream << "nil"; break;
-      };
-
-  return stream;
-}
 FlMethodBuilder::FlMethodBuilder()
 {
   capability = 16;
@@ -340,15 +324,16 @@ void FlFrame::print_frame(int32_t instr)
     printf("** instr: %03x %s\n", instr, instr_name((Instruction::Code)instr));
     printf("** stk: ");
     for(FlTagValue *i=stk_base; i<stk_top; i++){
-      if (i < stkp) std::cout << "[" << *i << "] ";
-      else std::cout << *i << " ";
+      if (i + 1 == stkp) std::cout << "<[*" << *i << "]> ";
+      else if (i < stkp) std::cout << "<[" << *i << "]> ";
+      else std::cout << "[" << *i << "] ";
     }
     printf("\n** locals: ");
     for(int i=0; i<current_exec->max_locals(); i++)
         std::cout << locals[i] << " ";
     printf("\n** const: ");
     for (int i = 0; i < current_exec->_k_len; i++)
-        std::cout << current_exec->k[i] << " ";
+        std::cout << "[" << current_exec->k[i] << "] ";
     printf("\n************************************************************\n");
 }
 
@@ -390,8 +375,11 @@ void FlSExec::dispatch(instr_t instr)
     case Instruction::bstore: 
       _m_frame->storeb(_m_frame->popb(), read_instr()); 
       break;
-    case Instruction::ostore: 
-      _m_frame->storeo(_m_frame->popo(), read_instr()); 
+    // case Instruction::ostore: 
+    //   _m_frame->storeo(_m_frame->popo(), read_instr()); 
+    //   break;
+    case Instruction::sstore: 
+      _m_frame->stores(_m_frame->pops(), read_instr()); 
       break;
 
     case Instruction::iadd: _m_frame->iadd(); break;

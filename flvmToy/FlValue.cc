@@ -1,4 +1,28 @@
 #include "FlValue.h"
+#include "unicode/ustream.h"
+#include "unicode/ustdio.h"
+#include <iomanip>
+
+// vm obj
+
+std::ostream& operator<<(std::ostream& stream, const FlTagValue& value)
+{
+      switch(value.tag()){
+        case FlTagValue::IntTag:    stream << value.union_v()._int; break;
+        case FlTagValue::DoubleTag: stream << std::setprecision(10) <<(FlDouble) value.union_v()._double; break;
+        case FlTagValue::StrTag:    
+        {
+          FlString* string = (FlString*)value.union_v()._obj;
+          u_printf_u(string->chars());
+        }
+          break;
+        case FlTagValue::ObjTag:    stream << "obj"; break;
+        case FlTagValue::BoolTag:   stream << value.union_v()._bool; break;
+        default:                    stream << "nil"; break;
+      };
+
+  return stream;
+}
 
 FlString* StringPool::of_string(const UChar* cs, size_t len)
 {

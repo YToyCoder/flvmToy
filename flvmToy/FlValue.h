@@ -3,14 +3,16 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <stdio.h>
 
 #include "unicode/uchar.h"
 #include "unicode/ustring.h"
 
+uint64_t hash_cstr(const char *p, size_t len);
+// *************************** value ****************************
 class FlObj {
   virtual uint64_t hash() = 0;
 };
-
 
 typedef long long FlInt;
 typedef double    FlDouble;
@@ -18,6 +20,48 @@ typedef bool      FlBool;
 typedef UChar      FlChar;
 typedef uint8_t   FlByte;
 typedef FlObj*    FlObjp;
+
+class FlString : public FlObj {
+  FlChar *m_chars;
+  FlInt len;
+  FlInt hash_code;
+public:
+  FlString(const FlChar *chars,size_t _len)
+    : FlString(chars, _len, 0) { }
+
+  FlString(const FlChar* chars, size_t _len , uint64_t hcode)
+  {
+    m_chars = new UChar[_len + 1];
+    m_chars[_len] = '\0';
+    u_strncpy(m_chars, chars, _len);
+    len = _len;
+    hash_code = hcode;
+  }
+
+  ~FlString(){ if(m_chars != nullptr) delete[] m_chars; }
+
+  FlInt length() { return len; }
+  const FlChar* chars() const { return m_chars; }
+
+  FlChar charAt(FlInt loc) {
+    range_check(loc);
+    return m_chars[loc];
+  }
+
+  inline uint64_t hash() override {
+    if(hash_code == 0) {
+      const char* cs = (const char*) m_chars;
+      hash_code = hash_cstr(cs, len * 2);
+    }
+    return hash_code;
+  }
+
+  void range_check(FlInt loc){
+    if(loc >= len)
+      throw "range out of index";
+  }
+};
+
 // vm slot
 typedef union FlValue {
   FlInt _int;
@@ -43,6 +87,7 @@ class FlTagValue{
     FlInt _int()      { return _val._int; }
     FlDouble _double(){ return _val._double; }
     FlObj* _objp()      { return _val._obj; }
+    FlString* _str()      { return (FlString*)_val._obj; }
     FlBool _bool()    { return _val._bool; }
     FlChar _char()    { return _val._char; }
 
@@ -51,11 +96,13 @@ class FlTagValue{
     void set(FlChar v)  { this->_val._char = v; _tag = CharTag; }
     void set(FlDouble v){ this->_val._double = v; _tag = DoubleTag; }
     void set(FlObjp v)   { this->_val._obj = v; _tag = ObjTag; }
+    void set(FlString* v)   { this->_val._obj = v; _tag = StrTag; }
 
     enum TagT : uint8_t{
       IntTag,
       DoubleTag,
       ObjTag,
+      StrTag,
       BoolTag,
       CharTag,
       UnInit,
@@ -76,47 +123,7 @@ class FlTagValue{
 };
 
 std::ostream & operator<<(std::ostream& stream, const FlTagValue& value);
-uint64_t hash_cstr(const char *p, size_t len);
 
-class FlString : public FlObj {
-  const FlChar *chars;
-  FlInt len;
-  FlInt hash_code;
-public:
-  FlString(const FlChar *chars,size_t _len)
-    : FlString(chars, len, 0) { }
-
-  FlString(const FlChar* chars, size_t _len , uint64_t hcode)
-  {
-    this->chars = new UChar[_len];
-    u_strncpy(const_cast<UChar*>(this->chars), chars, _len);
-    len = _len;
-    hash_code = 0;
-  }
-
-  ~FlString(){ if(chars != nullptr) delete[] chars; }
-
-  FlInt length() { return len; }
-
-  FlChar charAt(FlInt loc) {
-    range_check(loc);
-    return chars[loc];
-  }
-
-  inline uint64_t hash() override {
-    if(hash_code == 0) {
-      const char* cs = (const char*) chars;
-      hash_code = hash_cstr(cs, len * 2);
-    }
-    return hash_code;
-  }
-
-  void range_check(FlInt loc){
-    if(loc >= len)
-      throw "range out of index";
-  }
-
-};
 
 class StringPool 
 {
