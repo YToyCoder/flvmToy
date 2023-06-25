@@ -174,6 +174,7 @@ token_t Lex::alphabetic_start_token() {
   if (str == "let") tk =TokLet;
   else if(str == "if") tk = TokIf;
   else if(str == "else") tk = TokElse;
+  else if(str == "fn") tk = TokFn;
   else tk = TokId;
   return create_token(tk, token_start, m_file_offset - token_start);
 }

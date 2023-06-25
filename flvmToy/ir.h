@@ -29,6 +29,8 @@ enum IRNodeTag {
   IRTag_If,
   //
   IRTag_Block,
+  // function
+  IRTag_Fn,
 };
 
 #define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
@@ -86,6 +88,7 @@ class IR_Cast;
 class IR_Decl;
 class IR_Block;
 class IR_If;
+class IR_Fn;
 
 template <typename _Ty>
 using sptr_t = std::shared_ptr<_Ty> ;
@@ -98,6 +101,7 @@ using sptr_t = std::shared_ptr<_Ty> ;
   virtual IRNode* visit(IR_Cast* cast) = 0;		\
   virtual IRNode* visit(IR_Decl* decl) = 0;		\
   virtual IRNode* visit(IR_If* stmt_if) = 0;	\
+  virtual IRNode* visit(IR_Fn* stmt_fn) = 0;	\
   virtual IRNode* visit(IR_Block* block) = 0;
 
 class IRVisitor
@@ -120,6 +124,7 @@ public:
   virtual IRNode* visit(IR_Cast* _cast) override ;	\
   virtual IRNode* visit(IR_Decl* _decl) override;		\
   virtual IRNode* visit(IR_If* stmt_if) override;		\
+  virtual IRNode* visit(IR_Fn* stmt_fn) override;		\
   virtual IRNode* visit(IR_Block* block) override;
 
 class IRNode
@@ -373,4 +378,10 @@ private:
   sptr_t<IRNode> m_test;
   sptr_t<IRNode> m_success;
   sptr_t<IRNode> m_failed;
+};
+
+class IR_Fn: public IRNode
+{
+  IRNode_Tag_Impl(IRTag_Fn)
+  IR_Node_Accept_Visitor_Impl()
 };

@@ -385,7 +385,16 @@ IRNode* TypeConvert::visit(IR_Block* block)
 // TODO:?
 IRNode* TypeConvert::visit(IR_If* stmt_if)
 {
+  stmt_if->test()->accept(*this);
+  stmt_if->success()->accept(*this);
+  if(stmt_if->has_failed())
+    stmt_if->failed()->accept(*this);
   return stmt_if;
+}
+
+IRNode* TypeConvert::visit(IR_Fn* stmt_fn)
+{
+  return stmt_fn;
 }
 
 // ******************************* CodeGen ********************************
@@ -644,6 +653,11 @@ IRNode* CodeGen::visit(IR_If* stmt_if)
     replace_instr(failed_replace_flag, _m_builder.code_len());
   }
   return stmt_if;
+}
+
+IRNode* CodeGen::visit(IR_Fn* stmt_fn)
+{
+  return stmt_fn;
 }
 
 sptr_t<FlMethod> CodeGen::get_method()

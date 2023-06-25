@@ -35,6 +35,7 @@ enum TokenKind : uint8_t
   // control
   TokIf,
   TokElse,
+  TokFn,  // function
   TokEol, // end of line => \n
   TokEof, // end of file
 };

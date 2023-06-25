@@ -59,11 +59,14 @@ protected:
   IRNode* parsing_one_line();
   // stmt = decl | stmt_if
   IRNode* parsing_stmt();
-  // stmt_if = "if" cmp braced_block if_rest 
+  // stmt_if = "if" cmp braced_block if_rest
   // if_rest =  "" 
   //          | "else" bracked_block 
   //          | "else" stmt_if bracked_block
   IRNode* parsing_stmt_if();
+
+  // stmt_fn = "fn" [ id ] fn_parameters return_t braced_block
+  // fn_parameters = "(" parameter parameter_rest ")"
 
   // ******************************** token ******************************
   inline token_t 	token(); 

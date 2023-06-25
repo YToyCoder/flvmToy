@@ -150,8 +150,24 @@ IRNode* IR_String::visit(IR_Block* block)
 	return block;
 }
 
+IRNode* IR_String::visit(IR_Fn* fn)
+{
+	return fn;
+}
+
 // TODO:?
 IRNode* IR_String::visit(IR_If* stmt_if)
 {
+	if(nullptr != stmt_if) {
+		_m_ss << "if ";
+		stmt_if->test()->accept(*this);
+		_m_ss << "{" << std::endl;
+		stmt_if->success()->accept(*this);
+		_m_ss << std::endl;
+		if(stmt_if->has_failed()) {
+			_m_ss << "else " << std::endl;
+			stmt_if->failed()->accept(*this);
+		}
+	}
 	return stmt_if;
 }
