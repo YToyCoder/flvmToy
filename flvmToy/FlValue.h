@@ -56,7 +56,7 @@ public:
     return hash_code;
   }
 
-  void range_check(FlInt loc){
+  void range_check(FlInt loc) {
     if(loc >= len)
       throw "range out of index";
   }

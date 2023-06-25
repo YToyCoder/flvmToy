@@ -21,8 +21,11 @@ flvm is a stack based vm, it support instruction as follow:
     istore   = 0x0D,
     dstore   = 0x0E,
     bstore   = 0x0F,
-    ldci     = 0x11, // load int from consts
-    ldcd     = 0x12, // load double from consts
+    ostore   = 0x11, // store string in local value
+    sstore   = 0x11, // store string in local value
+    ldci     = 0x15, // load int from consts
+    ldcd     = 0x16, // load double from consts
+    ldcs     = 0x17, // load string from consts
 
     // operator
     iadd     = 0x21,
@@ -78,4 +81,6 @@ else if 3 == 3
   let f = 2
   let ss = 1.2 + a
 }
+
+let e = "hello, string-world"
 ```
