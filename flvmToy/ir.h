@@ -384,4 +384,16 @@ class IR_Fn: public IRNode
 {
   IRNode_Tag_Impl(IRTag_Fn)
   IR_Node_Accept_Visitor_Impl()
+public:
+  inline bool is_named() const { return m_is_named; }
+  inline const unistr_t& id() const { return m_id; }
+  inline const unistr_t& return_type_id() const { return m_id; }
+  inline IRNode* body() const { return m_body.get(); }
+  inline std::vector<sptr_t<IRNode>> params() const { return m_params; }
+private:
+  bool            m_is_named;
+  unistr_t        m_id; // function name
+  std::vector<sptr_t<IRNode>> m_params;
+  unistr_t        m_return_type; // return type id
+  sptr_t<IRNode>  m_body;  // function body
 };
