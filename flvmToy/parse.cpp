@@ -287,6 +287,35 @@ IRNode* Parser::parsing_stmt()
   }
 }
 
+IR_Fn* Parser::parsing_fn()
+{
+  token_t fn = eat(TokFn);
+  bool has_id = token_is_kind(token(), TokId);
+  token_t id;
+  if(has_id){
+    id = next_tok();
+  }
+  std::vector<sptr_t<IRNode>> params = parsing_fn_params();
+  eat(TokColon);
+  token_t ret_type = eat(TokId);
+  ignore_empty_line();
+  IRNode* body = parsing_braced_block();
+  unistr_t return_id;
+  m_context->find_tok_str(ret_type, return_id);
+  if(has_id) {
+    unistr_t idStr;
+    m_context->find_tok_str(id, idStr);
+    return new IR_Fn(fn, tok_end(fn), idStr, params, return_id, body);
+  } 
+  return new IR_Fn(fn, tok_end(fn), params, return_id, body);
+}
+
+
+std::vector<sptr_t<IRNode>> Parser::parsing_fn_params()
+{
+  return std::vector<sptr_t<IRNode>>();
+}
+
 //************************** TypeConvert ***********************
 IRNode* TypeConvert::convert(IRNode* ir)
 {

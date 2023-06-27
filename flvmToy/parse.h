@@ -64,9 +64,10 @@ protected:
   //          | "else" bracked_block 
   //          | "else" stmt_if bracked_block
   IRNode* parsing_stmt_if();
-
   // stmt_fn = "fn" [ id ] fn_parameters return_t braced_block
+  IR_Fn* parsing_fn();
   // fn_parameters = "(" parameter parameter_rest ")"
+  std::vector<sptr_t<IRNode>> parsing_fn_params();
 
   // ******************************** token ******************************
   inline token_t 	token(); 

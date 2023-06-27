@@ -32,6 +32,9 @@ enum TokenKind : uint8_t
   TokLe, // <=
   TokGt, // >
   TokGe, // >=
+  //
+  TokColon,  // :
+  TokComma,  // ,
   // control
   TokIf,
   TokElse,

@@ -390,6 +390,15 @@ public:
   inline const unistr_t& return_type_id() const { return m_id; }
   inline IRNode* body() const { return m_body.get(); }
   inline std::vector<sptr_t<IRNode>> params() const { return m_params; }
+  inline void add_param(IRNode* param) {  m_params.push_back(sptr_t<IRNode>(param)); }
+
+public:
+  IR_Fn(token_t t, uint32_t e, unistr_t id, std::vector<sptr_t<IRNode>> params, unistr_t return_type, IRNode* body)
+    : IRNode(t, e), m_id(id), m_is_named(true), m_params(params), m_return_type(return_type), m_body(body) {}
+
+  IR_Fn(token_t t, uint32_t e, std::vector<sptr_t<IRNode>> params, unistr_t return_type, IRNode* body)
+    : IRNode(t, e), m_id(""), m_is_named(false), m_params(params), m_return_type(return_type), m_body(body) {}
+
 private:
   bool            m_is_named;
   unistr_t        m_id; // function name
