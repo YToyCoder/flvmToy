@@ -152,6 +152,14 @@ IRNode* IR_String::visit(IR_Block* block)
 
 IRNode* IR_String::visit(IR_Fn* fn)
 {
+	if(nullptr != fn) {
+		_m_ss << "fn " << fn->id() << "(" ;
+		for(auto it : fn->params())	{
+			_m_ss << it->m_id << ":" << it->m_typeId << ", ";
+		}
+		_m_ss << "): " << fn->return_type_id() << std::endl;
+		fn->body()->accept(*this);
+	}
 	return fn;
 }
 
