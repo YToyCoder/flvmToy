@@ -31,6 +31,7 @@ enum IRNodeTag {
   IRTag_Block,
   // function
   IRTag_Fn,
+  IRTag_FnParam,
 };
 
 #define TOKEN_KIND_RET_TAG(ID) case Tok##ID: return IRTag_##ID
@@ -380,6 +381,17 @@ private:
   sptr_t<IRNode> m_failed;
 };
 
+class IR_FnParam: public IRNode
+{
+  IRNode_Tag_Impl(IRTag_FnParam)
+public:
+  IR_FnParam(token_t t, uint32_t e, unistr_t id, unistr_t type_id)
+    : IRNode(t, e), m_id(id), m_typeId(type_id) { }
+public:
+  unistr_t m_id;
+  unistr_t m_typeId;
+};
+
 class IR_Fn: public IRNode
 {
   IRNode_Tag_Impl(IRTag_Fn)
@@ -389,20 +401,20 @@ public:
   inline const unistr_t& id() const { return m_id; }
   inline const unistr_t& return_type_id() const { return m_id; }
   inline IRNode* body() const { return m_body.get(); }
-  inline std::vector<sptr_t<IRNode>> params() const { return m_params; }
-  inline void add_param(IRNode* param) {  m_params.push_back(sptr_t<IRNode>(param)); }
+  inline std::vector<sptr_t<IR_FnParam>> params() const { return m_params; }
+  inline void add_param(IR_FnParam* param) {  m_params.push_back(sptr_t<IR_FnParam>(param)); }
 
 public:
-  IR_Fn(token_t t, uint32_t e, unistr_t id, std::vector<sptr_t<IRNode>> params, unistr_t return_type, IRNode* body)
+  IR_Fn(token_t t, uint32_t e, unistr_t id, std::vector<sptr_t<IR_FnParam>> params, unistr_t return_type, IRNode* body)
     : IRNode(t, e), m_id(id), m_is_named(true), m_params(params), m_return_type(return_type), m_body(body) {}
 
-  IR_Fn(token_t t, uint32_t e, std::vector<sptr_t<IRNode>> params, unistr_t return_type, IRNode* body)
+  IR_Fn(token_t t, uint32_t e, std::vector<sptr_t<IR_FnParam>> params, unistr_t return_type, IRNode* body)
     : IRNode(t, e), m_id(""), m_is_named(false), m_params(params), m_return_type(return_type), m_body(body) {}
 
 private:
   bool            m_is_named;
   unistr_t        m_id; // function name
-  std::vector<sptr_t<IRNode>> m_params;
+  std::vector<sptr_t<IR_FnParam>> m_params;
   unistr_t        m_return_type; // return type id
   sptr_t<IRNode>  m_body;  // function body
 };

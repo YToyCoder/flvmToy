@@ -25,6 +25,9 @@ std::string tk_to_str(token_t tok) {
 	case TokLBrace: return "(";
 	case TokRBrace: return ")";
 	case TokStr:		return "str";
+	case TokColon:	return ":";
+	case TokComma:	return ",";
+	case TokFn:			return "fn";
 	default:				return "?";
 	}
 }

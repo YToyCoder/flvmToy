@@ -281,6 +281,7 @@ IRNode* Parser::parsing_stmt()
   switch((tk)) {
     case TokLet: return parsing_decl();
     case TokIf:  return parsing_stmt_if();
+    case TokFn:  return parsing_fn();
     default: 
       printf("not support stmt that start with %03x %s\n", tk, tk_to_str(tk).c_str());
       throw std::exception();
@@ -295,7 +296,7 @@ IR_Fn* Parser::parsing_fn()
   if(has_id){
     id = next_tok();
   }
-  std::vector<sptr_t<IRNode>> params = parsing_fn_params();
+  std::vector<sptr_t<IR_FnParam>> params = parsing_fn_params();
   eat(TokColon);
   token_t ret_type = eat(TokId);
   ignore_empty_line();
@@ -305,15 +306,36 @@ IR_Fn* Parser::parsing_fn()
   if(has_id) {
     unistr_t idStr;
     m_context->find_tok_str(id, idStr);
-    return new IR_Fn(fn, tok_end(fn), idStr, params, return_id, body);
+    return new IR_Fn(fn, _m_lex.cur_pos(), idStr, params, return_id, body);
   } 
-  return new IR_Fn(fn, tok_end(fn), params, return_id, body);
+  return new IR_Fn(fn, _m_lex.cur_pos(), params, return_id, body);
 }
 
-
-std::vector<sptr_t<IRNode>> Parser::parsing_fn_params()
+std::vector<sptr_t<IR_FnParam>> Parser::parsing_fn_params()
 {
-  return std::vector<sptr_t<IRNode>>();
+  token_t t = eat(TokLParent);
+  std::vector<sptr_t<IR_FnParam>> params;
+  if(!token_is_kind(token(), TokRParent)) {
+    params.push_back(sptr_t<IR_FnParam>(parsing_param_element()));
+  }
+  while(has_tok() && !token_is_kind(token(), TokRParent)) {
+    eat(TokComma);
+    params.push_back(sptr_t<IR_FnParam>(parsing_param_element()));
+  }
+  if(has_tok()) eat(TokRParent);
+  return params;
+}
+
+IR_FnParam* Parser::parsing_param_element()
+{
+  token_t id = eat(TokId);
+  eat(TokColon);
+  token_t type_id = eat(TokId);
+  unistr_t idStr;
+  unistr_t typeStr;
+  m_context->find_tok_str(id, idStr);
+  m_context->find_tok_str(type_id, typeStr);
+  return new IR_FnParam(id, _m_lex.cur_pos(), idStr, typeStr);
 }
 
 //************************** TypeConvert ***********************

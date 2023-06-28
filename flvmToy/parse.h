@@ -67,7 +67,9 @@ protected:
   // stmt_fn = "fn" [ id ] fn_parameters return_t braced_block
   IR_Fn* parsing_fn();
   // fn_parameters = "(" parameter parameter_rest ")"
-  std::vector<sptr_t<IRNode>> parsing_fn_params();
+  std::vector<sptr_t<IR_FnParam>> parsing_fn_params();
+  // id : type_id
+  IR_FnParam* parsing_param_element();
 
   // ******************************** token ******************************
   inline token_t 	token(); 
