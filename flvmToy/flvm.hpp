@@ -82,18 +82,19 @@ FlInt sign_extend(uint16_t v);
 // slot with tag which for debug
 
 class FlMethod {
-  instr_t* codes;
-  FlTagValue* k;   // const value in method
-  size_t _max_stk;
-  size_t _max_locals;
-  size_t _code_len;
-  size_t _k_len; // debug
   friend class FlFrame;
   friend class FlMethodBuilder;
-  public:
-    size_t max_stk()    { return _max_stk; }
-    size_t max_locals() { return _max_locals; }
+public:
+    size_t max_stk()    { return m_max_stk; }
+    size_t max_locals() { return m_max_locals; }
     void to_string() const;
+private:
+  instr_t* codes;
+  FlTagValue* k;   // const value in method
+  size_t m_max_stk;
+  size_t m_max_locals;
+  size_t code_len;
+  size_t k_len; // debug
 };
 
 class FlFrame
@@ -138,7 +139,7 @@ public:
     void print_frame(int32_t instr);
     void init();
     void setLast(FlFrame *frame){ this->last = frame; }
-    bool end_of_pc() { return (current_exec->codes + current_exec->_code_len) <= pc; }
+    bool end_of_pc() { return (current_exec->codes + current_exec->code_len) <= pc; }
 
 private:  
   inline void stkp_out_of_index_check();
@@ -245,11 +246,11 @@ private:
     }
   }
 
-  instr_t *code_cache;
-  size_t capability;
-  size_t len;
-  size_t max_stk;
-  size_t max_locals;
+  instr_t*  code_cache;
+  size_t    capability;
+  size_t    len;
+  size_t    max_stk;
+  size_t    max_locals;
 
   FlTagValue* k_cache;
   size_t    k_cap;

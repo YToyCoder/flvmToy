@@ -150,9 +150,9 @@ protected:
     : _m_tok(_tok), _m_begin_pos(_s), _m_end_pos(_e) {};
 
 protected:
-  uint32_t _m_begin_pos;
-  uint32_t _m_end_pos;
-  token_t		 _m_tok;
+  uint32_t  _m_begin_pos;
+  uint32_t  _m_end_pos;
+  token_t		_m_tok;
 };
 
 class IR_String: protected Visitor
@@ -412,9 +412,9 @@ public:
     : IRNode(t, e), m_id(""), m_is_named(false), m_params(params), m_return_type(return_type), m_body(body) {}
 
 private:
-  bool            m_is_named;
-  unistr_t        m_id; // function name
+  bool                            m_is_named;
+  unistr_t                        m_id; // function name
   std::vector<sptr_t<IR_FnParam>> m_params;
-  unistr_t        m_return_type; // return type id
-  sptr_t<IRNode>  m_body;  // function body
+  unistr_t                        m_return_type; // return type id
+  sptr_t<IRNode>                  m_body;  // function body
 };

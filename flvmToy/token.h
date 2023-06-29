@@ -93,7 +93,3 @@ inline bool token_is_comp_operator(token_t tok)
     default: 		return false;
   }
 }
-
-#ifdef TOK_TEST
-void tok_test1();
-#endif

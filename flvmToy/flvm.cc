@@ -85,7 +85,8 @@ FlMethodBuilder::FlMethodBuilder()
   len = 0;
   max_stk = 0;
   max_locals = 0;
-  code_cache = new instr_t[capability] ;// (instr_t*)malloc(sizeof(instr_t) * capability);
+  code_cache = new instr_t[capability] ;
+
 // const pool
   k_cap = 8;
   k_len = 0;
@@ -171,9 +172,9 @@ FlMethod* FlMethodBuilder::build()
   for (int i = 0; i < len; i++) {
     ret->codes[i] = code_cache[i];
   }
-  ret->_max_locals = max_locals;
-  ret->_max_stk = max_stk;
-  ret->_code_len = this->len;
+  ret->m_max_locals = max_locals;
+  ret->m_max_stk = max_stk;
+  ret->code_len = this->len;
 
   // consts
   ret->k = (FlTagValue *)malloc(sizeof(FlTagValue) * k_len);
@@ -181,7 +182,7 @@ FlMethod* FlMethodBuilder::build()
   {
     ret->k[i] = k_cache[i];
   }
-  ret->_k_len = k_len;
+  ret->k_len = k_len;
   clear();
   return ret;
 }
@@ -202,11 +203,11 @@ void FlMethod::to_string() const
   size_t instr_cursor = 0;
   instr_t instr;
   int ic_record;
-  for(int i=0; i < _k_len; i++) {
+  for(int i=0; i < k_len; i++) {
     printf("%02d ", i);
     std::cout << k[i] << std::endl; 
   }
-  while (instr_cursor < _code_len)
+  while (instr_cursor < code_len)
   {
     ic_record = instr_cursor;
     instr = codes[instr_cursor++];
@@ -332,7 +333,7 @@ void FlFrame::print_frame(int32_t instr)
     for(int i=0; i<current_exec->max_locals(); i++)
         std::cout << locals[i] << " ";
     printf("\n** const: ");
-    for (int i = 0; i < current_exec->_k_len; i++)
+    for (int i = 0; i < current_exec->k_len; i++)
         std::cout << "[" << current_exec->k[i] << "] ";
     printf("\n************************************************************\n");
 }
@@ -375,9 +376,6 @@ void FlSExec::dispatch(instr_t instr)
     case Instruction::bstore: 
       _m_frame->storeb(_m_frame->popb(), read_instr()); 
       break;
-    // case Instruction::ostore: 
-    //   _m_frame->storeo(_m_frame->popo(), read_instr()); 
-    //   break;
     case Instruction::sstore: 
       _m_frame->stores(_m_frame->pops(), read_instr()); 
       break;
