@@ -150,9 +150,9 @@ protected:
     : _m_tok(_tok), _m_begin_pos(_s), _m_end_pos(_e) {};
 
 protected:
-  uint32_t _m_begin_pos;
-  uint32_t _m_end_pos;
-  token_t		 _m_tok;
+  uint32_t  _m_begin_pos;
+  uint32_t  _m_end_pos;
+  token_t		_m_tok;
 };
 
 class IR_String: protected Visitor

@@ -99,10 +99,8 @@ IRNode* Parser::parsing_id()
 
 IRNode* Parser::parsing_str()
 {
-  token_t&& t = next_tok();
+  token_t t = next_tok();
   unistr_t ustr = _m_lex.token_string(t);
-  std::cout << "parsing string >> " <<  ustr << " : " << ustr.length() << std::endl;
-  u_printf_u(ustr.getBuffer());
   FlString* str = m_context->string_pool()->of_string(ustr.getBuffer(), ustr.length());
   return new IR_Str(t, tok_end(t), str);
 }
@@ -231,7 +229,6 @@ IRNode* Parser::parsing_block()
   ignore_empty_line();
   while (has_tok() && !token_is_kind(token(), TokRBrace)) {
     ls.push_back(sptr_t<IRNode>(parsing_stmt()));
-    // if (has_tok()) eat(TokEol); // every line expression end with TokEol
     ignore_empty_line();
   }
   return new IR_Block(start_token, _m_lex.cur_pos(), ls);
@@ -245,7 +242,7 @@ IRNode* Parser::parsing_braced_block()
     eat(TokRBrace);
     return new IR_Block(t, _m_lex.cur_pos(), {});
   }
-  IRNode*&& block = parsing_block();
+  IRNode* block = parsing_block();
   ignore_empty_line();
   eat(TokRBrace);
   return block;
@@ -387,12 +384,10 @@ IRNode* TypeConvert::visit(IR_BinOp* ir)
 IRNode* TypeConvert::visit(IR_Cast* cast) 
 { 
   pop_t();
-  if (cast->cast_to() == NodeInt)
-  {
+  if (cast->cast_to() == NodeInt) {
     push_t(CodeGen_I);
   }
-  if (cast->cast_to() == NodeDouble)
-  {
+  if (cast->cast_to() == NodeDouble) {
     push_t(CodeGen_D);
   }
   return cast; 
@@ -406,9 +401,7 @@ IRNode* TypeConvert::visit(IR_Id* id)
 
 IRNode* TypeConvert::visit(IR_Decl* decl)
 {
-  //std::cout << "decl " << decl->id() << std::endl;
-  switch (pop_t())
-  {
+  switch (pop_t()) {
   case CodeGen_D: 
     this->decl(decl->id(), NodeDouble);
     break;
@@ -460,8 +453,7 @@ void CodeGen::build(IRNode* ir)
 
 IRNode* CodeGen::visit(IR_Block* block)
 {
-  for(auto it : block->list())
-  {
+  for(auto it : block->list()) {
     it->accept(*this);
   }
   return block;
@@ -590,17 +582,16 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
 {
   CodeGenType rhs_t = pop_t();
   CodeGenType lhs_t = pop_t();
-  auto&& gen_comp_code = [&](Instruction::Code instr, Instruction::Code s_instr)
-  {
+  auto&& gen_comp_code = [&](Instruction::Code instr, Instruction::Code s_instr) {
     add_instr(s_instr);
     push_t(rhs_t);
     add_instr(instr);
     pop_t();
-    add_instr(_m_builder.code_len() + 5 - 1);
+    add_instr(m_builder.code_len() + 5 - 1);
     add_instr(Instruction::iconst_0);
     push_t(CodeGen_I);
     add_instr(Instruction::go);
-    add_instr(_m_builder.code_len() + 3 - 1);
+    add_instr(m_builder.code_len() + 3 - 1);
     add_instr(Instruction::iconst_1);
     add_instr(Instruction::i2b);
     pop_t();
@@ -697,11 +688,11 @@ IRNode* CodeGen::visit(IR_If* stmt_if)
     auto&& failed = stmt_if->failed();
     add_instr(Instruction::go);
     size_t jump_failed_flag = add_instr(0);
-    replace_instr(failed_replace_flag, _m_builder.code_len());
+    replace_instr(failed_replace_flag, m_builder.code_len());
     failed->accept(*this);
-    replace_instr(jump_failed_flag, _m_builder.code_len());
+    replace_instr(jump_failed_flag, m_builder.code_len());
   }else {
-    replace_instr(failed_replace_flag, _m_builder.code_len());
+    replace_instr(failed_replace_flag, m_builder.code_len());
   }
   return stmt_if;
 }
@@ -713,7 +704,7 @@ IRNode* CodeGen::visit(IR_Fn* stmt_fn)
 
 sptr_t<FlMethod> CodeGen::get_method()
 {
-  _m_builder.set_max_stk(max_stk_size);
-  _m_builder.set_max_locals(m_max_local);
-  return sptr_t<FlMethod>(_m_builder.build());
+  m_builder.set_max_stk(max_stk_size);
+  m_builder.set_max_locals(m_max_local);
+  return sptr_t<FlMethod>(m_builder.build());
 }

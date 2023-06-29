@@ -32,7 +32,7 @@ std::string tk_to_str(token_t tok) {
 	}
 }
 
-token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset){
+token_t create_token(TokenKind _kind, uint32_t fileOffset, uint32_t token_offset) {
 	token_t tok = 0;
 	uint8_t* byte_pointer = (uint8_t*)(&tok);
 	*byte_pointer =(uint8_t) _kind;
@@ -52,22 +52,19 @@ TokenKind token_kind(token_t tok) {
 	return (TokenKind)*((char*)&tok);
 }
 
-uint32_t tok_foffset(token_t tok)
-{
+uint32_t tok_foffset(token_t tok) {
 	uint8_t* byte_pointer = (uint8_t*)(&tok);
 	uint32_t* foffset = (uint32_t*)(byte_pointer + 2);
 	return *foffset ;
 }
 
-uint32_t tok_end(token_t tok)
-{
+uint32_t tok_end(token_t tok) {
 	uint8_t* byte_pointer = (uint8_t*)(&tok);
 	uint32_t* foffset = (uint32_t*)(byte_pointer + 2);
 	return *foffset + tok_len(tok);
 }
 
-uint32_t tok_len(token_t tok)
-{
+uint32_t tok_len(token_t tok) {
 	uint8_t* byte_pointer = (uint8_t*)(&tok);
 	return *(byte_pointer + 1);
 }
@@ -78,12 +75,3 @@ std::string token_to_str(token_t tok) {
 		std::to_string(tok_foffset(tok)) + "-" +
 		std::to_string(tok_len(tok));
 }
-
-
-#ifdef TOK_TEST
-#include <vector>
-#include <stdio.h>
-
-void tok_test1() {
-}
-#endif

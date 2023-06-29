@@ -197,7 +197,6 @@ token_t Lex::proc_string_token()
     !(get_cchar_from_uchar(peek_char()) == '"' || is_eol(peek_char())));
 
   save_token_str(token_start, str);
-  std::cout << str << std::endl;
   if(has_char() && get_cchar_from_uchar(peek_char()) == '"') {
     next_char();
   }
