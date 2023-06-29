@@ -412,9 +412,9 @@ public:
     : IRNode(t, e), m_id(""), m_is_named(false), m_params(params), m_return_type(return_type), m_body(body) {}
 
 private:
-  bool            m_is_named;
-  unistr_t        m_id; // function name
+  bool                            m_is_named;
+  unistr_t                        m_id; // function name
   std::vector<sptr_t<IR_FnParam>> m_params;
-  unistr_t        m_return_type; // return type id
-  sptr_t<IRNode>  m_body;  // function body
+  unistr_t                        m_return_type; // return type id
+  sptr_t<IRNode>                  m_body;  // function body
 };

@@ -199,14 +199,14 @@ private:
   CodeGenType gen_bin(IR_BinOp* ir);
 
 // code append operation
-  inline void replace_instr(size_t loc, uint8_t instr) { _m_builder.replace(loc, instr); }
+  inline void replace_instr(size_t loc, uint8_t instr) { m_builder.replace(loc, instr); }
 // position
-  inline size_t add_instr(uint8_t instr) { _m_builder.append(instr); return _m_builder.code_len() - 1; }
+  inline size_t add_instr(uint8_t instr) { m_builder.append(instr); return m_builder.code_len() - 1; }
   inline void add_int16_to_code(int16_t _i)
   {
     uint8_t* byte = (uint8_t*)(&_i);
-    _m_builder.append(*byte);
-    _m_builder.append(*(byte + 1));
+    m_builder.append(*byte);
+    m_builder.append(*(byte + 1));
   }
 // type operation
   inline CodeGenType pop_t()
@@ -246,7 +246,7 @@ private:
     uint8_t loc;
     if (!lookup_in_map(m_int_const_map, i, loc))
     {
-      loc = _m_builder.store_const_int(i);
+      loc = m_builder.store_const_int(i);
       m_int_const_map.insert(std::make_pair(i, loc));
     }
     return loc;
@@ -257,7 +257,7 @@ private:
     uint8_t loc;
     if (!lookup_in_map(m_double_const_map, d, loc))
     {
-      loc = _m_builder.store_const_double(d);
+      loc = m_builder.store_const_double(d);
       m_double_const_map.insert(std::make_pair(d, loc));
     }
     return loc;
@@ -268,7 +268,7 @@ private:
     uint8_t loc;
     if (!lookup_in_map(m_str_map, str, loc))
     {
-      loc = _m_builder.store_const_str(str);
+      loc = m_builder.store_const_str(str);
       m_str_map.insert(std::make_pair(str, loc));
     }
     return loc;
@@ -302,5 +302,5 @@ private:
   std::map<FlInt, uint8_t> 			m_int_const_map;			
   std::map<FlDouble, uint8_t> 	m_double_const_map; //
   std::map<FlString*, uint8_t> 	m_str_map; 	
-  FlMethodBuilder 							_m_builder;
+  FlMethodBuilder 							m_builder;
 };
