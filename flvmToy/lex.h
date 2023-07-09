@@ -98,16 +98,13 @@ protected:
 		m_context->store_token_str(s, str);
 	}
 private:
-	LexState mState;
-
+	LexState 	mState;
 	std::string mFilename;
-	UFILE* mFileHandle;
+	UFILE* 		mFileHandle;
 	uint32_t	m_file_offset;
-
-	UChar mbuf[BufSize];
-	uint16_t mBufLimit;
-	uint16_t mBufCursor;
-	token_t mtok;
-
-	Context* m_context;
+	UChar 		mbuf[BufSize];
+	uint16_t 	mBufLimit;
+	uint16_t 	mBufCursor;
+	token_t 	mtok;
+	Context* 	m_context;
 };

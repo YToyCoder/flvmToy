@@ -166,7 +166,6 @@ protected:
     }
   }
 
-
   std::map<unistr_t, unistr_t> m_name_type_map;
   Context* m_context;
 };

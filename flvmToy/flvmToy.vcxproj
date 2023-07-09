@@ -138,6 +138,7 @@
     <ClInclude Include="context.h" />
     <ClInclude Include="FlValue.h" />
     <ClInclude Include="flvm.hpp" />
+    <ClInclude Include="Fn.h" />
     <ClInclude Include="include\icu\alphaindex.h" />
     <ClInclude Include="include\icu\appendable.h" />
     <ClInclude Include="include\icu\basictz.h" />
@@ -342,6 +343,7 @@
   <ItemGroup>
     <ClCompile Include="FlValue.cc" />
     <ClCompile Include="flvm.cc" />
+    <ClCompile Include="Fn.cpp" />
     <ClCompile Include="ir.cpp" />
     <ClCompile Include="lex.cpp" />
     <ClCompile Include="main.cc" />

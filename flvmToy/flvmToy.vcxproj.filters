@@ -630,6 +630,9 @@
     <ClInclude Include="FlValue.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Fn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="flvm.cc">
@@ -654,6 +657,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="FlValue.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Fn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

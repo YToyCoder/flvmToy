@@ -73,9 +73,8 @@ typedef union FlValue {
 } FlValue;
 
 class FlTagValue{
-  FlValue _val;
-  uint8_t _tag;
-  FlTagValue(uint8_t tag){
+public:
+  FlTagValue(uint8_t tag) {
     _tag = tag;
     _val._int = 0;
   }
@@ -120,6 +119,9 @@ class FlTagValue{
         default:      out = "nil";
       };
     }
+private:
+  FlValue _val;
+  uint8_t _tag;
 };
 
 std::ostream & operator<<(std::ostream& stream, const FlTagValue& value);
