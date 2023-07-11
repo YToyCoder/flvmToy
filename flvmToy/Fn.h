@@ -4,6 +4,7 @@
 class FnProto
 {
 public:
+  void to_string() const;
   instr_t*  code;            // code
   int32_t   code_len;       // debug
 

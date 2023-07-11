@@ -46,8 +46,9 @@ protected:
 	inline token_t fetch_token();
 	inline token_t one_char_token(TokenKind _kind) 
 	{ 
-		token_t tok = create_token(_kind, m_file_offset, 1);
-		save_token_str(m_file_offset, next_char());
+		uint32_t tok_start = m_file_offset;
+		token_t tok = create_token(_kind, tok_start, 1);
+		save_token_str(tok_start, next_char());
 		//next_char(); // drop char
 		return tok;
 	}

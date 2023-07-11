@@ -33,7 +33,7 @@ token_t Parser::next_tok()
 
 token_t Parser::next_tok_must(TokenKind tk)
 {
-  token_t&& t = next_tok();
+  token_t t = next_tok();
   //printf("next token is => %s\n", token_to_str(t).c_str());
   if (!token_is_kind(t, tk))
   {
@@ -45,7 +45,7 @@ token_t Parser::next_tok_must(TokenKind tk)
 
 token_t Parser::eat(TokenKind tk)
 {
-  token_t&& t = next_tok();
+  token_t t = next_tok();
   if (!token_is_kind(t, tk))
   {
     std::cout << token_to_str(t) << std::endl;
@@ -107,7 +107,7 @@ IRNode* Parser::parsing_str()
 
 IRNode* Parser::parsing_one()
 {
-  TokenKind&& tk = token_kind(token());
+  TokenKind tk = token_kind(token());
   switch (tk)
   {
   case TokId:
@@ -442,6 +442,16 @@ IRNode* TypeConvert::visit(IR_Fn* stmt_fn)
 }
 
 // ******************************* CodeGen ********************************
+
+FnProto* CodeGen::buildProto(IRNode* ir) {
+  if(nullptr == ir) {
+    printf("empty ir tree\n");
+    return nullptr;
+  }
+  ir->accept(*this);
+  return fnBuilder.build();
+}
+
 void CodeGen::build(IRNode* ir)
 {
   if (ir == nullptr) {
