@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "FlValue.h"
+#include "Fn.h"
 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
@@ -255,4 +256,55 @@ private:
   FlTagValue* k_cache;
   size_t    k_cap;
   size_t    k_len;
+};
+
+class ExecFrame {
+public:
+  void pushd(FlDouble v){ stkp->set(v); stkp++; }
+  void pushb(FlBool v)  { stkp->set(v); stkp++; }
+  void pushi(FlInt v)   { stkp->set(v); stkp++; }
+  inline FlInt    read_locali(size_t loc) {  return locals[loc]._int(); }
+  inline FlDouble read_locald(size_t loc) {  return locals[loc]._double(); }
+public:
+  ExecFrame* next;
+  ExecFrame* pre;
+
+  FnProto* proto;
+  instr_t* pc; // pointer to code
+  FlTagValue* locals; 
+  FlTagValue* k;
+
+  FlTagValue* stkb; // base
+  FlTagValue* stkt; // top
+  FlTagValue* stkp; // pointer
+};
+
+// emulating a virtual machine
+class Emulator {
+private:
+  void dispatch_instruction(instr_t instr) ;
+// frame operations
+  inline instr_t read_instr(){ return *(topFrame->pc++);}
+  inline FlInt popi() { return (topFrame->stkp--)->_int(); }
+  inline FlInt popd() { return (topFrame->stkp--)->_double(); }
+
+// instruction impl
+  inline void iconst_0() { topFrame->pushi(0); }
+  inline void iconst_1() { topFrame->pushi(1); }
+  inline void iconst_2() { topFrame->pushi(2); }
+  inline void iconst_3() { topFrame->pushi(3); }
+  inline void iconst_4() { topFrame->pushi(4); }
+  inline void dconst_1() { topFrame->pushd(1.0); }
+  inline void dconst_2() { topFrame->pushd(2.0); }
+  inline void pushi() { 
+    FlInt intValue = sign_extend(read_instr() | read_instr() << 8);
+    topFrame->pushi(intValue);
+  }
+  inline void pushd() { topFrame->pushd(read_instr()); }
+  inline void loadi() { topFrame->pushi(topFrame->read_locali(read_instr())); }
+  inline void loadd() { topFrame->pushd(topFrame->read_locald(read_instr())); }
+  inline void storei(){ topFrame->locals[read_instr()] = popi(); }
+  inline void stored(){ topFrame->locals[read_instr()] = popd(); }
+private:
+  ExecFrame* topFrame;
 };

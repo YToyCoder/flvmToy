@@ -434,3 +434,22 @@ void FlSExec::dispatch(instr_t instr)
   _m_frame->print_frame(instr);
 #endif
 };
+
+void Emulator::dispatch_instruction(instr_t instr) {
+  switch(instr) {
+    case Instruction::nop:                  break;
+    case Instruction::iconst_0: iconst_0(); break;
+    case Instruction::iconst_1: iconst_1(); break;
+    case Instruction::iconst_2: iconst_2(); break;
+    case Instruction::iconst_3: iconst_3(); break;
+    case Instruction::iconst_4: iconst_4(); break;
+    case Instruction::dconst_1: dconst_1(); break;
+    case Instruction::dconst_2: dconst_2(); break;
+    case Instruction::ipush:    pushi();    break;
+    case Instruction::dpush:    pushd();    break;
+    case Instruction::iload:    loadi();    break;
+    case Instruction::dload:    loadd();    break;
+    case Instruction::istore:   storei();   break;
+    case Instruction::dstore:   stored();   break;
+  };
+}
