@@ -285,8 +285,11 @@ private:
   void dispatch_instruction(instr_t instr) ;
 // frame operations
   inline instr_t read_instr(){ return *(topFrame->pc++);}
-  inline FlInt popi() { return (topFrame->stkp--)->_int(); }
-  inline FlInt popd() { return (topFrame->stkp--)->_double(); }
+  inline FlInt    popi() { return (topFrame->stkp--)->_int(); }
+  inline FlDouble popd() { return (topFrame->stkp--)->_double(); }
+  inline FlBool   popb() { return (topFrame->stkp--)->_bool(); }
+  inline FlString* pops() { return (topFrame->stkp--)->_str(); }
+  inline FlTagValue ldconst(instr_t loc) { return topFrame->k[loc]; }
 
 // instruction impl
   inline void iconst_0() { topFrame->pushi(0); }
@@ -303,8 +306,32 @@ private:
   inline void pushd() { topFrame->pushd(read_instr()); }
   inline void loadi() { topFrame->pushi(topFrame->read_locali(read_instr())); }
   inline void loadd() { topFrame->pushd(topFrame->read_locald(read_instr())); }
-  inline void storei(){ topFrame->locals[read_instr()] = popi(); }
-  inline void stored(){ topFrame->locals[read_instr()] = popd(); }
+  inline void storei(){ topFrame->locals[read_instr()].set(popi()); }
+  inline void stored(){ topFrame->locals[read_instr()].set(popd()); }
+  inline void storeb(){ topFrame->locals[read_instr()].set(popb()); }
+  inline void stores(){ topFrame->locals[read_instr()].set(pops()); }
+  inline void addi()  { topFrame->pushi(popi() + popi()); }
+  inline void addd()  { topFrame->pushd(popd() + popd()); }
+  inline void subi()  { 
+    FlInt topI = popi();
+    topFrame->pushi(popi() - topI); 
+  }
+  inline void subd()  { 
+    FlDouble topD = popd();
+    topFrame->pushd(popd() - topD); 
+  }
+  inline void muli()  { topFrame->pushi(popi() * popi()); }
+  inline void muld()  { topFrame->pushd(popd() * popd()); }
+  inline void divi()  { 
+    FlInt topI = popi();
+    topFrame->pushi(popi() / topI); 
+  }
+  inline void divd()  { 
+    FlDouble topD = popd();
+    topFrame->pushd(popd() / topD); 
+  }
+  inline void ldci() { topFrame->pushi(ldconst(read_instr())._int()); }
+  inline void ldcd() { topFrame->pushi(ldconst(read_instr())._double()); }
 private:
   ExecFrame* topFrame;
 };

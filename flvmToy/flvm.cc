@@ -451,5 +451,17 @@ void Emulator::dispatch_instruction(instr_t instr) {
     case Instruction::dload:    loadd();    break;
     case Instruction::istore:   storei();   break;
     case Instruction::dstore:   stored();   break;
+    case Instruction::bstore:   storeb();   break;
+    case Instruction::sstore:   stores();   break;
+    case Instruction::iadd:     addi();     break;
+    case Instruction::dadd:     addd();     break;
+    case Instruction::dsub:     subd();     break;
+    case Instruction::isub:     subi();     break;
+    case Instruction::imul:     muli();     break;
+    case Instruction::dmul:     muld();     break;
+    case Instruction::idiv:     divi();     break;
+    case Instruction::ddiv:     divd();     break;
+    case Instruction::ldci:     ldci();     break;
+    case Instruction::ldcd:     ldcd();     break;
   };
 }
