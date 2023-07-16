@@ -27,10 +27,6 @@ void do_test()
 		std::cout << irs.stringify(n) << std::endl;
 		CodeGen cg(&ct);
 		cg.build(n);
-		auto method = cg.get_method();
-		method->to_string();
-		FlSExec exec;
-		exec.exec(method.get());
 	}
 
 #endif

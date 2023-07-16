@@ -21,6 +21,8 @@ public:
 class FnProtoBuilder 
 {
 public:
+  inline void set_max_stk(uint32_t _max_stk) { max_stk = _max_stk; }
+  inline void set_max_locals(uint32_t _max_local) { max_locals = _max_local; }
   uint8_t store_int_const(FlInt intValue);
   uint8_t store_double_const(FlDouble doubleValue);
   uint8_t store_str_const(FlString* str);

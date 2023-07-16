@@ -597,11 +597,11 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
     push_t(rhs_t);
     add_instr(instr);
     pop_t();
-    add_instr(m_builder.code_len() + 5 - 1);
+    add_instr(fnBuilder.code_len() + 5 - 1);
     add_instr(Instruction::iconst_0);
     push_t(CodeGen_I);
     add_instr(Instruction::go);
-    add_instr(m_builder.code_len() + 3 - 1);
+    add_instr(fnBuilder.code_len() + 3 - 1);
     add_instr(Instruction::iconst_1);
     add_instr(Instruction::i2b);
     pop_t();
@@ -698,11 +698,11 @@ IRNode* CodeGen::visit(IR_If* stmt_if)
     auto&& failed = stmt_if->failed();
     add_instr(Instruction::go);
     size_t jump_failed_flag = add_instr(0);
-    replace_instr(failed_replace_flag, m_builder.code_len());
+    replace_instr(failed_replace_flag, fnBuilder.code_len());
     failed->accept(*this);
-    replace_instr(jump_failed_flag, m_builder.code_len());
+    replace_instr(jump_failed_flag, fnBuilder.code_len());
   }else {
-    replace_instr(failed_replace_flag, m_builder.code_len());
+    replace_instr(failed_replace_flag, fnBuilder.code_len());
   }
   return stmt_if;
 }
@@ -710,11 +710,4 @@ IRNode* CodeGen::visit(IR_If* stmt_if)
 IRNode* CodeGen::visit(IR_Fn* stmt_fn)
 {
   return stmt_fn;
-}
-
-sptr_t<FlMethod> CodeGen::get_method()
-{
-  m_builder.set_max_stk(max_stk_size);
-  m_builder.set_max_locals(m_max_local);
-  return sptr_t<FlMethod>(m_builder.build());
 }

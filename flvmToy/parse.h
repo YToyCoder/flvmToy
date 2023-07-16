@@ -191,7 +191,6 @@ class CodeGen: protected Visitor, protected NameTypeMap
 public:
   CodeGen(Context* c): NameTypeMap(c), m_max_local(0), max_stk_size(0) { }
   void build(IRNode* ir);
-  sptr_t<FlMethod> get_method();
   FnProto* buildProto(IRNode* ir);
 private:
   IR_Visitor_Impl_Decl()
@@ -305,6 +304,5 @@ private:
   std::map<FlInt, uint8_t> 			m_int_const_map;			
   std::map<FlDouble, uint8_t> 	m_double_const_map; //
   std::map<FlString*, uint8_t> 	m_str_map; 	
-  FlMethodBuilder 							m_builder;
   FnProtoBuilder                fnBuilder; // function builder
 };

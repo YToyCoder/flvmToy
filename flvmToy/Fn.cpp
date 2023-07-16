@@ -9,7 +9,7 @@
 
 #define CasePrintOneParam(instruction) \
   case Instruction::## instruction ##: \
-  printf(STR(%03d %04x %10s \n), ic_record, instr, #instruction, code[instr_cursor++]); \
+  printf(STR(%03d %04x %10s %04d \n), ic_record, instr, #instruction, code[instr_cursor++]); \
   break
 
 void FnProto::to_string() const {
@@ -34,7 +34,7 @@ void FnProto::to_string() const {
       case Instruction::ipush: {
         uint8_t i1 = code[instr_cursor++];
         uint8_t i2 = code[instr_cursor++];
-        printf("%03d %04x %10s %03d\n", ic_record, instr, "ipush", sign_extend(i1 | ( i2 << 8) ));
+        printf("%03d %04x %10s %03ll\n", ic_record, instr, "ipush", sign_extend(i1 | ( i2 << 8) ));
       }
       break;
       CasePrintOneParam(dpush);
