@@ -263,6 +263,8 @@ public:
   void pushd(FlDouble v){ stkp->set(v); stkp++; }
   void pushb(FlBool v)  { stkp->set(v); stkp++; }
   void pushi(FlInt v)   { stkp->set(v); stkp++; }
+  template<typename _Ty>
+  void pushv(_Ty v) { stkp->set(v); stkp++; }
   inline FlInt    read_locali(size_t loc) {  return locals[loc]._int(); }
   inline FlDouble read_locald(size_t loc) {  return locals[loc]._double(); }
 public:
@@ -290,6 +292,7 @@ private:
   inline FlBool   popb() { return (topFrame->stkp--)->_bool(); }
   inline FlString* pops() { return (topFrame->stkp--)->_str(); }
   inline FlTagValue ldconst(instr_t loc) { return topFrame->k[loc]; }
+  inline void set_pc(uint16_t offset) { topFrame->pc = topFrame->proto->code + offset; }
 
 // instruction impl
   inline void iconst_0() { topFrame->pushi(0); }
@@ -330,8 +333,13 @@ private:
     FlDouble topD = popd();
     topFrame->pushd(popd() / topD); 
   }
-  inline void ldci() { topFrame->pushi(ldconst(read_instr())._int()); }
-  inline void ldcd() { topFrame->pushi(ldconst(read_instr())._double()); }
+
+  inline void ldci() { topFrame->pushv(ldconst(read_instr())._int()); }
+  inline void ldcd() { topFrame->pushv(ldconst(read_instr())._double()); }
+  inline void ldcs() { topFrame->pushv(ldconst(read_instr())._str()); }
+  inline void i2d()  { topFrame->pushv((FlDouble)popi()); }
+  inline void i2b()  { topFrame->pushv((FlBool)popi()); }
+  inline void d2i()  { topFrame->pushv((FlInt)popd()); }
 private:
   ExecFrame* topFrame;
 };
