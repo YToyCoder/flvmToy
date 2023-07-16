@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="context.h" />
+    <ClInclude Include="emulator.h" />
     <ClInclude Include="FlValue.h" />
     <ClInclude Include="flvm.hpp" />
     <ClInclude Include="Fn.h" />
@@ -341,6 +342,7 @@
     <ClInclude Include="token.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="emulator.cpp" />
     <ClCompile Include="FlValue.cc" />
     <ClCompile Include="flvm.cc" />
     <ClCompile Include="Fn.cpp" />
