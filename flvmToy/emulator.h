@@ -1,6 +1,7 @@
 #pragma once
 #include "flvm.hpp"
 #include "Fn.h"
+#include <map>
 
 class ExecFrame {
 public:
@@ -23,6 +24,10 @@ public:
   FlTagValue* stkb; // base
   FlTagValue* stkt; // top
   FlTagValue* stkp; // pointer
+};
+
+class EmGlobal {
+private:
 };
 
 // emulating a virtual machine
