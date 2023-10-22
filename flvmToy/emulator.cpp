@@ -34,7 +34,7 @@ void Emulator::dispatch_instruction(instr_t instr) {
     case Instruction::d2i:      d2i();      break;
 // ******************** int cmp **********************
 #define CaseIntergalCmp(instruction, op) \
-  case Instruction::## instruction ##: { \
+  case Instruction:: instruction : { \
     FlInt top_int = popi();              \
     uint8_t jmp_offset = read_instr();   \
     if(top_int op 0) set_pc(jmp_offset); \
@@ -60,6 +60,6 @@ void Emulator::dispatch_instruction(instr_t instr) {
 
     default:
       printf("not support instruction : %s \n", instr_name((Instruction::Code)instr));
-      throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
+      throw_exception(("not support instruction : " + std::to_string(instr)).c_str());
   };
 }

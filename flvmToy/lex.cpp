@@ -104,7 +104,7 @@ token_t Lex::fetch_token() {
 #if 1
   printf("error char is %c\n", (char)uc);
 #endif
-  throw std::exception("not support token type, start with");
+  throw_exception("not support token type, start with");
 }
 
 void Lex::fill_buffer(){
@@ -121,7 +121,7 @@ UChar Lex::next_char() {
   // there will be need throw an exception
   if (mBufLimit == 0) {
     // do throw 
-    throw std::exception("encounter eof while try to get char!");
+    throw_exception("encounter eof while try to get char!");
   }
   m_file_offset++;
   return mbuf[mBufCursor++];
@@ -210,5 +210,5 @@ unistr_t Lex::token_string(token_t tok)
     return str;
   std::cout <<  "not find str for token " << token_to_str(tok) << std::endl;
   m_context->print();
-  throw std::exception("not find str for token");
+  throw_exception("not find str for token");
 }

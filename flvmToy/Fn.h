@@ -1,5 +1,6 @@
 #pragma once
 #include "flvm.hpp"
+#include <vector>
 
 class FnProto
 {

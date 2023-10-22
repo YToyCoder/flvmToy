@@ -59,7 +59,7 @@ inline std::string IRTag_to_string(IRNodeTag _tag)
     TagToStringCase(Gt, ">");
     TagToStringCase(Ge, ">=");
   }
-  throw std::exception("tag to string error");
+  throw_exception("tag to string error");
 }
 
 inline IRNodeTag token_kind_to_tag(TokenKind tk)
@@ -77,7 +77,7 @@ inline IRNodeTag token_kind_to_tag(TokenKind tk)
     TOKEN_KIND_RET_TAG(Gt);
 
   }
-  throw std::exception("token kind to tag error");
+  throw_exception("token kind to tag error");
 }
 
 class IRNode;
@@ -131,9 +131,9 @@ public:
 class IRNode
 {
 public:
-  virtual IRNodeTag tag() { throw std::exception("user shuold implement this fn"); };
-  virtual IRNode* accept(IRVisitor& visitor) { throw std::exception("user shuold implement this fn"); };
-  virtual IRNode* accept(Visitor& visitor) { throw std::exception("user shuold implement this fn"); };
+  virtual IRNodeTag tag() { throw_exception("user shuold implement this fn"); return IRTag_Add; };
+  virtual IRNode* accept(IRVisitor& visitor) { throw_exception("user shuold implement this fn"); return nullptr; };
+  virtual IRNode* accept(Visitor& visitor) { throw_exception("user shuold implement this fn"); return nullptr; };
 public:
   token_t		 token()		const	{ return _m_tok; }
   uint32_t start_loc()	const	{ return _m_begin_pos; }
@@ -196,14 +196,15 @@ public: \
   IRNode_Tag_Impl(Tag) \
   IRNode_Visitor_Impl()
 #define IrName(ir) IR_ ## ir
+
 #define IrNode_Set_Method_Impl(ir, param) \
-IrName(ir)* IrName(ir)::set_## param ## (IRNode* in) { \
+IrName(ir)* IrName(ir):: set_## param  (IRNode* in) { \
   if(in == nullptr )                                \
     printf("in is nullptr when set init\n");        \
-  if(in == m_## param ## .get())                    \
+  if(in == m_## param .get())                    \
     return this;																		\
   auto&& copy = new IrName(ir) (*this); 						\
-  copy-> ## m_## param ## = sptr_t<IRNode>(in); 		\
+  copy-> m_ ## param = sptr_t<IRNode>(in); 		\
   return copy;																			\
 }
 // ***********************************************************

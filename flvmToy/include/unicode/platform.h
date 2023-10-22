@@ -820,12 +820,8 @@
 
 #ifdef U_IMPORT
     /* Use the predefined value. */
-#elif defined(_MSC_VER) || (UPRV_HAS_DECLSPEC_ATTRIBUTE(__dllexport__) && \
-                            UPRV_HAS_DECLSPEC_ATTRIBUTE(__dllimport__))
-    /* Windows needs to export/import data. */
-#   define U_IMPORT __declspec(dllimport)
 #else
-#   define U_IMPORT 
+#   define U_IMPORT __declspec(dllimport)
 #endif
 
 /**

@@ -189,12 +189,12 @@ FlMethod* FlMethodBuilder::build()
 
 #define STR(content) #content
 #define Case_Print(instruction)                                     \
-  case Instruction::## instruction ##:                              \
+  case Instruction:: instruction :                              \
   printf( STR( %03d  %04x %10s\n), ic_record, instr, #instruction); \
   break;
 
 #define Case_Print_One_Param(instruction)                                   \
-  case Instruction::## instruction ##:                                      \
+  case Instruction:: instruction :                                      \
   printf( STR( %03d  %04x %10s %03d \n), ic_record, instr , #instruction , codes[instr_cursor++]); \
   break;
 
@@ -277,7 +277,7 @@ void FlMethod::to_string() const
     Case_Print_One_Param(go)
     default:
       printf("not support instruction (%04x:%s) to string\n", instr, instr_name((Instruction::Code)instr));
-      throw std::exception("not support instruction when code to string");
+      throw_exception("not support instruction when code to string");
     }
   }
 }
@@ -402,7 +402,7 @@ void FlSExec::dispatch(instr_t instr)
       break;
 
 #define Case_Comp(instruction, op) \
-    case Instruction:: ##instruction : {              \
+    case Instruction:: instruction : {              \
       FlInt top_int = _m_frame->popi();               \
       uint8_t jump_offset = read_instr();             \
       if(top_int op 0) _m_frame->set_pc(jump_offset); \
@@ -428,7 +428,7 @@ void FlSExec::dispatch(instr_t instr)
 
     default:
       printf("not support instruction : %s \n", instr_name((Instruction::Code)instr));
-      throw std::exception(("not support instruction : " + std::to_string(instr)).c_str());
+      throw_exception(("not support instruction : " + std::to_string(instr)).c_str());
   };
 #if 1
   _m_frame->print_frame(instr);

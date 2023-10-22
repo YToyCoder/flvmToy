@@ -3,12 +3,12 @@
 #include <stdio.h>
 #define STR(c) #c
 #define CasePrint(instruction) \
-  case Instruction::## instruction ##: \
+  case Instruction:: instruction : \
     printf(STR(%03d %04x %10s\n), ic_record, instr, #instruction); \
     break
 
 #define CasePrintOneParam(instruction) \
-  case Instruction::## instruction ##: \
+  case Instruction:: instruction : \
   printf(STR(%03d %04x %10s %04d \n), ic_record, instr, #instruction, code[instr_cursor++]); \
   break
 
@@ -85,7 +85,7 @@ void FnProto::to_string() const {
       CasePrintOneParam(go);
       default:
         printf("not support instruction (%04x:%s) to string\n", instr, instr_name((Instruction::Code)instr));
-        throw std::exception("not support instruction when code to string");
+        throw_exception("not support instruction when code to string");
     }
   }
 }
@@ -117,7 +117,7 @@ FnProtoBuilder* FnProtoBuilder::append(instr_t instr) {
 
 FnProtoBuilder* FnProtoBuilder::replace(size_t loc, instr_t instr) {
   if(loc >= code_cache.size()) {
-    throw std::exception("");
+    throw_exception("");
   }
   code_cache[loc] = instr;
   return this;

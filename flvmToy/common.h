@@ -15,3 +15,11 @@ struct position_t {
 };
 
 typedef U_ICU_NAMESPACE::UnicodeString unistr_t;
+
+inline void throw_exception(const char * msg) {
+	#ifdef __GNUC__ 
+		throw std::exception(); 
+	#else 
+		throw std::exception(msg);
+	#endif
+}

@@ -100,7 +100,7 @@ enum CodeGenType
 
 inline CodeGenType better_type(CodeGenType ta, CodeGenType tb)
 {
-  return max(ta, tb);
+  return ta > tb ? ta : tb;
 }
 class NameTypeMap
 {
@@ -113,7 +113,11 @@ protected:
     if (it != m_name_type_map.end())
     {
       std::cout << "variable " << n << " have been declared " << std::endl;
-      throw std::exception("redeclare for variable name");
+      #ifdef __GNUC__
+        throw std::exception();
+      #else 
+        throw std::exception("redeclare for variable name");
+      #endif
     }
     m_name_type_map.insert(std::make_pair(n, t));
   }
@@ -124,7 +128,11 @@ protected:
     if (it == m_name_type_map.end())
     {
       std::cout << "variable " << n << " not declared" << std::endl;
-      throw std::exception("variable not declared");
+      #ifdef __GNUC__
+        throw std::exception();
+      #else 
+        throw std::exception("variable not declared");
+      #endif
     }
     unistr_t type_name = it->second;
     if (type_name == NodeInt) {
@@ -137,7 +145,11 @@ protected:
     }
     else {
       std::cout << "not support type for " << type_name << std::endl;
-      throw std::exception("not support type");
+      #ifdef __GNUC__
+        throw std::exception();
+      #else 
+        throw std::exception("not support type");
+      #endif
     }
   }
 
@@ -146,7 +158,11 @@ protected:
     unistr_t str;
     if (!m_context->find_tok_str(id->token(), str))
     {
-      throw std::exception("could not find id node token str");
+      #ifdef __GNUC__
+        throw std::exception();
+      #else 
+        throw std::exception("could not find id node token str");
+      #endif
     }
     return variable_t(str);
   }
@@ -155,7 +171,11 @@ protected:
   {
     if (!m_context->find_tok_str(id->token(), str))
     {
-      throw std::exception("could not find id node token str");
+      #if defined(__GNUC__)
+        throw std::exception();
+      #else 
+        throw std::exception("could not find id node token str");
+      #endif
     }
   }
 
@@ -163,7 +183,11 @@ protected:
   {
     if (!m_context->find_tok_str(tok, str))
     {
-      throw std::exception("could not find id node token str");
+      #if defined(__GNUC__)
+        throw std::exception();
+      #else 
+        throw std::exception("could not find id node token str");
+      #endif
     }
   }
 

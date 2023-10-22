@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "FlValue.h"
+#include "common.h"
 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
@@ -71,7 +72,7 @@ struct Instruction {
 extern const char* instr_map[256];
 
 #define InstrNameDefine(instr) \
-  instr_map[(uint8_t)Instruction:: ## instr] = #instr
+  instr_map[(uint8_t)Instruction:: instr] = #instr
 
 void set_instr_map();
 const char* instr_name(Instruction::Code instr);
@@ -171,7 +172,7 @@ public:
   {
     if (nullptr == method)
     {
-      throw std::exception("method is nullptr when exec method");
+      throw_exception("method is nullptr when exec method");
     }
     FlFrame frame;
     _m_frame = &frame;
@@ -237,6 +238,11 @@ private:
     {
       size_t n_len = 1.5 * k_cap;
       FlTagValue* n_area =(FlTagValue *) malloc(sizeof( FlTagValue) * n_len);
+      if (n_area == nullptr)
+      {
+        return;
+      }
+
       for (int i = 0; i < k_len && i < n_len; i++)
       {
         n_area[i] = k_cache[i];

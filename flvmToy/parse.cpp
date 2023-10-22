@@ -38,7 +38,7 @@ token_t Parser::next_tok_must(TokenKind tk)
   if (!token_is_kind(t, tk))
   {
     std::cout << token_to_str(t) << std::endl;
-    throw std::exception("token is not expected kind");
+    throw_exception("token is not expected kind");
   }
   return t;
 }
@@ -49,7 +49,7 @@ token_t Parser::eat(TokenKind tk)
   if (!token_is_kind(t, tk))
   {
     std::cout << token_to_str(t) << std::endl;
-    throw std::exception("token is not expected kind");
+    throw_exception("token is not expected kind");
   }
   return t;
 }
@@ -126,7 +126,7 @@ IRNode* Parser::parsing_one()
   }
   }
   printf("not support token kind for literal : %s\n", tk_to_str(tk).c_str());
-  throw std::exception("not support kind literal");
+  throw_exception("not support kind literal");
 }
 
 IRNode* Parser::binary_parsing_proccess(
@@ -141,7 +141,7 @@ IRNode* Parser::binary_parsing_proccess(
     if (!has_tok())
     {
       printf("doesn't has token when prccess right-hand side");
-      throw std::exception("parsing binary node exception[ has no right-hand side expression ]");
+      throw_exception("parsing binary node exception[ has no right-hand side expression ]");
     }
     IRNode* rhs = fn_xhand_side_parsing();
     lhs = new IR_BinOp(
@@ -281,7 +281,7 @@ IRNode* Parser::parsing_stmt()
     case TokFn:  return parsing_fn();
     default: 
       printf("not support stmt that start with %03x %s\n", tk, tk_to_str(tk).c_str());
-      throw std::exception();
+      throw_exception("");
   }
 }
 
@@ -416,7 +416,7 @@ IRNode* TypeConvert::visit(IR_Decl* decl)
     break;
   default:
     std::cout << "decl " << decl->id() << " wrong" << std::endl;
-    throw std::exception("declare wrong");
+    throw_exception("declare wrong");
   }
   return decl;
 }
@@ -502,7 +502,7 @@ IRNode* CodeGen::visit(IR_Cast* cast)
       add_instr(Instruction::d2i);
     }
     else {
-      throw std::exception("not support cast");
+      throw_exception("not support cast");
     }
     break;
   case CodeGen_I:
@@ -514,11 +514,11 @@ IRNode* CodeGen::visit(IR_Cast* cast)
       push_t(CodeGen_I);
     }
     else {
-      throw std::exception("not support cast");
+      throw_exception("not support cast");
     }
     break;
   default:
-    throw std::exception("gen code error when gen cast node");
+    throw_exception("gen code error when gen cast node");
   }
   return cast;
 }
@@ -585,7 +585,7 @@ inline Instruction::Code tag_to_double_instr(IRNodeTag tag)
     case IRTag_Mul: return Instruction::dmul;
     case IRTag_Div: return Instruction::ddiv;
   }
-  throw std::exception("not support tag convert to instruction");
+  throw_exception("not support tag convert to instruction");
 }
 
 CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
@@ -608,44 +608,43 @@ CodeGenType CodeGen::gen_bin(IR_BinOp* ir)
     push_t(CodeGen_B);
     lhs_t = CodeGen_B;
   };
-  if (lhs_t == rhs_t)
-  {
-    switch (lhs_t)
-    {
-#define BinOp_CodeGen(k, instr) 																				\
-          switch (ir->tag()) 																						\
-          { 																														\
-            case IRTag_Add: add_instr(Instruction::## k ## add); break;         \
-            case IRTag_Sub: add_instr(Instruction::## k ## sub); break; 				\
-            case IRTag_Mul: add_instr(Instruction::## k ## mul); break; 				\
-            case IRTag_Div: add_instr(Instruction::## k ## div); break; 				\
-            case IRTag_Eq: gen_comp_code(Instruction::ifeq, Instruction:: ## instr); break; \
-            case IRTag_Lt: gen_comp_code(Instruction::iflt, Instruction:: ## instr); break; \
-            case IRTag_Le: gen_comp_code(Instruction::ifle, Instruction:: ## instr); break; \
-            case IRTag_Ge: gen_comp_code(Instruction::ifge, Instruction:: ## instr); break; \
-            case IRTag_Gt: gen_comp_code(Instruction::ifgt, Instruction:: ## instr); break; \
-            default: 																										\
-              printf(">> not support tag type for %x when gen code for binop node", ir->tag()); \
-              throw std::exception("not support tag convert to instruction"); \
-          } 
 
-      case CodeGen_I:
-        BinOp_CodeGen(i, isub)
-        break;
-      case CodeGen_D: 
-        BinOp_CodeGen(d, dcmp)
-        break;
-      default:
-        throw std::exception("not support other type when codegen");
-    }
-    return lhs_t;
-  }
-  else 
+  if (lhs_t != rhs_t)
   {
     // shouldn't reach here 
     printf("binary two side type is not equal\n");
-    throw std::exception();
+    throw_exception("");
   }
+
+#define BinOp_CodeGen(k, instr) 																				\
+          switch (ir->tag()) 																						\
+          { 																														\
+            case IRTag_Add: add_instr(Instruction:: k ## add); break;         \
+            case IRTag_Sub: add_instr(Instruction:: k ## sub); break; 				\
+            case IRTag_Mul: add_instr(Instruction:: k ## mul); break; 				\
+            case IRTag_Div: add_instr(Instruction:: k ## div); break; 				\
+            case IRTag_Eq: gen_comp_code(Instruction::ifeq, Instruction::  instr); break; \
+            case IRTag_Lt: gen_comp_code(Instruction::iflt, Instruction::  instr); break; \
+            case IRTag_Le: gen_comp_code(Instruction::ifle, Instruction::  instr); break; \
+            case IRTag_Ge: gen_comp_code(Instruction::ifge, Instruction::  instr); break; \
+            case IRTag_Gt: gen_comp_code(Instruction::ifgt, Instruction::  instr); break; \
+            default: 																										\
+              printf(">> not support tag type for %x when gen code for binop node", ir->tag()); \
+              throw_exception("not support tag convert to instruction"); \
+          } 
+
+	switch (lhs_t)
+	{
+		case CodeGen_I:
+			BinOp_CodeGen(i, isub)
+			break;
+		case CodeGen_D: 
+			BinOp_CodeGen(d, dcmp)
+			break;
+		default:
+			throw_exception("not support other type when codegen");
+	}
+	return lhs_t;
 }
 
 IRNode* CodeGen::visit(IR_Id* id)
@@ -659,7 +658,7 @@ IRNode* CodeGen::visit(IR_Id* id)
   {
     case CodeGen_D: add_instr(Instruction::dload); break;
     case CodeGen_I: add_instr(Instruction::iload); break;
-    default: throw std::exception("not support type when gen code for id node");
+    default: throw_exception("not support type when gen code for id node");
   }
   add_instr(local);
   return id;
@@ -672,7 +671,7 @@ IRNode* CodeGen::visit(IR_Decl* decl)
   unistr_t name = decl->id();
 #define Case_Decl(_case, instr, variable_t) \
   case CodeGen_## _case: \
-    add_instr(Instruction::## instr); \
+    add_instr(Instruction:: instr); \
     add_instr(local_for_name(name));  \
     decl_variable(name, variable_t);  \
     break;
@@ -683,7 +682,7 @@ IRNode* CodeGen::visit(IR_Decl* decl)
     Case_Decl(D, dstore, NodeDouble)
     Case_Decl(B, bstore, NodeBool)
     Case_Decl(S, sstore, NodeString)
-    default: throw std::exception("encounter unsupported type when gen code for decl");
+    default: throw_exception("encounter unsupported type when gen code for decl");
   }
   return decl;
 }
